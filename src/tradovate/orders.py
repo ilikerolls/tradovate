@@ -1,17 +1,20 @@
 from __future__ import annotations
-import asyncio,redis,logging,json,os
+import asyncio, redis, logging, json, os
 
 from .client import Client
-#from .auth import Profile
-#from .auth.session import Session
-#from .accounting import Accounting
+
+
+# from .auth import Profile
+# from .auth.session import Session
+# from .accounting import Accounting
 
 
 class Orders(Client):
     """Tradovate Client"""
 
     async def put_order(self):
-        entry = await self.place_order(account_spec=self.name, account_id=self.id, action='Sell', symbol='MESU2', order_qty=1, order_type='Market')
+        entry = await self.place_order(account_spec=self.name, account_id=self.id, action='Sell', symbol='MESU2',
+                                       order_qty=1, order_type='Market')
 
     async def call_order(self):
         entry = await self.place_order(account_spec=self.name, account_id=self.id, action='Buy', symbol='MESU2',
@@ -20,12 +23,12 @@ class Orders(Client):
     async def get_order_list(self):
         orders = await self.order_list()
         print(orders)
-        #return orders
+        # return orders
 
     """Class of methods related to orders."""
 
     # -Constructor
-    #def __init__(self, session) -> Orders:
+    # def __init__(self, session) -> Orders:
     #    self._session = session
 
     async def command_dependents(self, master_id: int) -> dict:
@@ -297,7 +300,8 @@ class Orders(Client):
                 "accountSpec": account_spec, "accountId": account_id, "clOrdId": cl_ord_id,
                 "action": action, "symbol": symbol, "orderQty": order_qty, "orderType": order_type,
                 "price": price, "stopPrice": stop_price, "maxShow": max_show, "pegDifference": peg_difference,
-                "timeInForce": time_in_force, "expireTime": expire_time, "text": text, "activationTime": activation_time,
+                "timeInForce": time_in_force, "expireTime": expire_time, "text": text,
+                "activationTime": activation_time,
                 "customTag50": custom_tag_50, "isAutomated": is_automated,
                 "other": {
                     "action": other_action, "clOrdId": other_cl_ord_id, "orderType": other_order_type,
@@ -336,7 +340,8 @@ class Orders(Client):
                 "accountSpec": account_spec, "accountId": account_id, "clOrdId": cl_ord_id,
                 "action": action, "symbol": symbol, "orderQty": order_qty, "orderType": order_type,
                 "price": price, "stopPrice": stop_price, "maxShow": max_show, "pegDifference": peg_difference,
-                "timeInForce": time_in_force, "expireTime": expire_time, "text": text, "activationTime": activation_time,
+                "timeInForce": time_in_force, "expireTime": expire_time, "text": text,
+                "activationTime": activation_time,
                 "customTag50": custom_tag_50, "isAutomated": is_automated,
             },
         )
@@ -389,7 +394,8 @@ class Orders(Client):
                 "accountSpec": account_spec, "accountId": account_id, "clOrdId": cl_ord_id,
                 "action": action, "symbol": symbol, "orderQty": order_qty, "orderType": order_type,
                 "price": price, "stopPrice": stop_price, "maxShow": max_show, "pegDifference": peg_difference,
-                "timeInForce": time_in_force, "expireTime": expire_time, "text": text, "activationTime": activation_time,
+                "timeInForce": time_in_force, "expireTime": expire_time, "text": text,
+                "activationTime": activation_time,
                 "customTag50": custom_tag_50, "isAutomated": is_automated,
                 "bracket1": {
                     "action": bracket_1_action, "clOrdId": bracket_1_cl_order_id, "orderType": bracket_1_order_type,

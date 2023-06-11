@@ -1,20 +1,27 @@
 from __future__ import annotations
 
-import asyncio,os,redis,json,pytz,logging
+import asyncio
+import json
+import logging
+import os
+import pytz
+import redis
+from asyncio import AbstractEventLoop
 from datetime import datetime, timedelta, timezone
 
-from aiohttp import ClientSession,ClientResponse
-from asyncio import AbstractEventLoop
+from aiohttp import ClientSession, ClientResponse
 
 from ..stream.utils import urls, timestamp_to_datetime
 from ..stream.utils.errors import (
     LoginInvalidException, LoginCaptchaException
 )
+
 log = logging.getLogger(__name__)
 
 redis_client = redis.Redis(host=os.environ.get("REDIS_HOST", "redis"),
-            port=int(os.environ.get("REDIS_PORT", "6379")),
-            decode_responses=True)
+                           port=int(os.environ.get("REDIS_PORT", "6379")),
+                           decode_responses=True)
+
 
 class Session:
 
@@ -25,7 +32,6 @@ class Session:
         self._session: ClientSession | None = None
         self._loop: AbstractEventLoop = loop if loop else asyncio.get_event_loop()
         self._loop.create_task(self.__ainit__(), name="session-client")
-
 
         self.URL: str = urls.http_base_live if os.getenv('TO_ENV') == 'LIVE' else urls.http_base_demo
         tokens = redis_client.get('TO_TOKEN')
@@ -43,11 +49,11 @@ class Session:
             print(">>>>>>>>>>>>>request_access_token 2")
             tokens = asyncio.run(self.request_access_token())
 
-        print(">>>>>>>>>>>>>.",tokens)
+        print(">>>>>>>>>>>>>.", tokens)
         self.access_tokens: dict = tokens
         self.access_token: str = self.access_tokens['accessToken']
         self.market_data_access_token: str = self.access_tokens['mdAccessToken']
-        #self.token_expiration_time: str = self.access_tokens['expirationTime'].replace("T", " ")[:-8]
+        # self.token_expiration_time: str = self.access_tokens['expirationTime'].replace("T", " ")[:-8]
         self.headers: dict = {
             'Authorization': f'Bearer {self.access_token}',
             'Content-Type': 'application/json',
@@ -115,33 +121,33 @@ class Session:
 
     # -Instance Methods: Private
     async def _update_authorization(
-                self, res: ClientResponse
-        ) -> dict[str, str]:
-            '''Updates Session authorization fields'''
-            res_dict = await res.json()
+            self, res: ClientResponse
+    ) -> dict[str, str]:
+        '''Updates Session authorization fields'''
+        res_dict = await res.json()
 
-            # print(">>>>>>>>>>>+++++", res_dict)
+        # print(">>>>>>>>>>>+++++", res_dict)
 
-            # -Invalid Credentials
-            if 'errorText' in res_dict:
-                self.authenticated.clear()
-                raise LoginInvalidException(res_dict['errorText'])
-            # -Captcha Limiting
-            if 'p-ticket' in res_dict:
-                self.authenticated.clear()
-                raise LoginCaptchaException(
-                    res_dict['p-ticket'], int(res_dict['p-time']),
-                    bool(res_dict['p-captcha'])
-                )
-            # -Access Token
-            log.debug("Session event 'authorized'")
-            self.authenticated.set()
+        # -Invalid Credentials
+        if 'errorText' in res_dict:
+            self.authenticated.clear()
+            raise LoginInvalidException(res_dict['errorText'])
+        # -Captcha Limiting
+        if 'p-ticket' in res_dict:
+            self.authenticated.clear()
+            raise LoginCaptchaException(
+                res_dict['p-ticket'], int(res_dict['p-time']),
+                bool(res_dict['p-captcha'])
+            )
+        # -Access Token
+        log.debug("Session event 'authorized'")
+        self.authenticated.set()
 
-            redis_client.set('TO_TOKEN', json.dumps(res_dict))
+        redis_client.set('TO_TOKEN', json.dumps(res_dict))
 
-            self.token_expiration = timestamp_to_datetime(res_dict['expirationTime'])
+        self.token_expiration = timestamp_to_datetime(res_dict['expirationTime'])
 
-            return res_dict
+        return res_dict
 
     def try_parsing_date(self, text):
         for fmt in ('%Y-%m-%dT%H:%M:%SZ', '%Y-%m-%dT%H:%M:%S.%f%z', '%Y-%m-%dT%H:%M:%S%z'):
@@ -184,7 +190,6 @@ class Session:
             if not data:
                 return {}
             return json.loads(data)
-
 
     # -Property
     @property

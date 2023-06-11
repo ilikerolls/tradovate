@@ -1,20 +1,22 @@
 ## Imports
 from __future__ import annotations
-import asyncio,redis,logging,json,os
 
-from datetime import datetime,timedelta
+import asyncio
+import logging
+import os
+import redis
+from datetime import timedelta
 
-from .auth import Profile
 from .accounting import Accounting
+from .auth import Profile
 from .auth.session import Session
-from .stream.utils import urls
 from .stream.utils.typing import CredentialAuthDict
 
 ## Constants
 log = logging.getLogger(__name__)
 redis_client = redis.Redis(host=os.environ.get("REDIS_HOST", "redis"),
-            port=int(os.environ.get("REDIS_PORT", "6379")),
-            decode_responses=True)
+                           port=int(os.environ.get("REDIS_PORT", "6379")),
+                           decode_responses=True)
 
 
 ## Classes
@@ -73,7 +75,7 @@ class Client(Profile):
 
     # -Instance Methods: Public
     async def authorize(
-        self, auth: CredentialAuthDict, auto_renew: bool = True
+            self, auth: CredentialAuthDict, auto_renew: bool = True
     ) -> None:
         '''Initialize Client authorization and auto-renewal'''
         self.id = await self._session.request_access_token(auth)
@@ -84,15 +86,12 @@ class Client(Profile):
         '''Wait for all authentication setup to be finished'''
         await self._session.authenticated.wait()
 
-
     async def close(self) -> None:
         await self._session.close()
-
 
     async def process_message(self) -> None:
         '''Task for WebSocket loop'''
         print(">>>>>>>")
-
 
     # -Properties: Authenticated
     @property

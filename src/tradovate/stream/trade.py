@@ -1,11 +1,14 @@
 ## Imports
 from __future__ import annotations
-import logging,os
+
+import logging
+import os
 
 from .client import Client
 
 ## Constants
 log = logging.getLogger(__name__)
+
 
 class TradOvate(Client):
     """ Tradovate Client"""
@@ -15,7 +18,6 @@ class TradOvate(Client):
 
     async def on_unsubcribe(self, ticker) -> None:
         await self.unsubscribe_symbol(ticker)
-
 
 
 def subcribe(ticker, interval):
@@ -31,6 +33,7 @@ def subcribe(ticker, interval):
     }
     client.run_subcribe(authorization_dict, ticker=ticker, interval=interval)
 
+
 def run():
     client = TradOvate()
 
@@ -43,6 +46,3 @@ def run():
         "sec": os.getenv('TO_SEC')
     }
     client.run(authorization_dict, ticker='ESU2', interval=5)
-
-
-

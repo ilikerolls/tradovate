@@ -1,8 +1,8 @@
 ## Imports
 from __future__ import annotations
-import asyncio,redis,logging,json,os,requests,pytz,time
+import asyncio, redis, logging, json, os, requests, pytz, time
 
-from datetime import datetime,timedelta
+from datetime import datetime, timedelta
 import numpy as np
 
 from .profile import Profile
@@ -17,8 +17,8 @@ import pandas_ta as pd
 ## Constants
 log = logging.getLogger(__name__)
 redis_client = redis.Redis(host=os.environ.get("REDIS_HOST", "redis"),
-            port=int(os.environ.get("REDIS_PORT", "6379")),
-            decode_responses=True)
+                           port=int(os.environ.get("REDIS_PORT", "6379")),
+                           decode_responses=True)
 
 
 ## Classes
@@ -76,9 +76,9 @@ class Client(Profile):
             await self._session.renew_access_token()
 
     async def _subcribe(
-        self, auth: CredentialAuthDict, auto_renew: bool,
-        ticker, interval,
-        live: bool, demo: bool, mdlive: bool
+            self, auth: CredentialAuthDict, auto_renew: bool,
+            ticker, interval,
+            live: bool, demo: bool, mdlive: bool
     ) -> None:
         '''Private client loop run method'''
         await self.create_websockets(live, demo, mdlive)
@@ -91,9 +91,9 @@ class Client(Profile):
         self._dispatch('subcribe', ticker=ticker, interval=interval)
 
     async def _unsubcribe(
-        self, auth: CredentialAuthDict, auto_renew: bool,
-        ticker,
-        live: bool, demo: bool, mdlive: bool
+            self, auth: CredentialAuthDict, auto_renew: bool,
+            ticker,
+            live: bool, demo: bool, mdlive: bool
     ) -> None:
         '''Private client loop run method'''
         await self.create_websockets(live, demo, mdlive)
@@ -107,7 +107,7 @@ class Client(Profile):
 
     # -Instance Methods: Public
     async def authorize(
-        self, auth: CredentialAuthDict, auto_renew: bool = True
+            self, auth: CredentialAuthDict, auto_renew: bool = True
     ) -> None:
         '''Initialize Client authorization and auto-renewal'''
         self.id = await self._session.request_access_token(
@@ -190,7 +190,7 @@ class Client(Profile):
 
                 # I use this logic to test trading demo on Tradovate
                 if len(self._datas) >= 240:
-                    print(">>>>>Last data", self._datas[len(self._datas)-1])
+                    print(">>>>>Last data", self._datas[len(self._datas) - 1])
                     self.logic_call_put(self._datas, self._support, ticker=ticker, interval=interval)
 
     def _save_data_redis(self, id, datas, bars, ticker, interval):
@@ -209,7 +209,7 @@ class Client(Profile):
                     dt2 = int(datetime.strptime(bar['timestamp'], '%Y-%m-%dT%H:%M%z').strftime("%s"))
 
                     if dt == dt2:
-                        items[l-1] = bar
+                        items[l - 1] = bar
                     elif dt < dt2:
                         items.append(bar)
 
@@ -220,10 +220,10 @@ class Client(Profile):
         return datas
 
     def run_subcribe(
-        self, auth: CredentialAuthDict, *, auto_renew: bool = True,
-        ticker, interval,
-        live_websocket: bool = True, demo_websocket: bool = False,
-        mdlive_websocket: bool = True
+            self, auth: CredentialAuthDict, *, auto_renew: bool = True,
+            ticker, interval,
+            live_websocket: bool = True, demo_websocket: bool = False,
+            mdlive_websocket: bool = True
     ) -> None:
         '''Public client loop run method'''
         self._loop.run_until_complete(self._subcribe(
@@ -239,10 +239,10 @@ class Client(Profile):
             self._loop.close()
 
     def run_unsubcribe(
-        self, auth: CredentialAuthDict, *, auto_renew: bool = True,
-        ticker,
-        live_websocket: bool = True, demo_websocket: bool = False,
-        mdlive_websocket: bool = True
+            self, auth: CredentialAuthDict, *, auto_renew: bool = True,
+            ticker,
+            live_websocket: bool = True, demo_websocket: bool = False,
+            mdlive_websocket: bool = True
     ) -> None:
         '''Public client loop run method'''
         self._loop.run_until_complete(self._unsubcribe(
@@ -258,7 +258,7 @@ class Client(Profile):
             self._loop.close()
 
     async def subscribe_symbol(
-        self, id_: int | str, *, interval: int, total: int
+            self, id_: int | str, *, interval: int, total: int
     ) -> None:
         '''Add symbol to market subscription'''
         if self._mdlive:
@@ -267,17 +267,17 @@ class Client(Profile):
 
         # -Chart
         await self._mdlive.request(urls.wss_market_chart_sub,
-           body={"symbol": id_,
-                "chartDescription": {
-                    "underlyingType": 'MinuteBar',
-                    "elementSize": interval,
-                    "elementSizeUnit": 'UnderlyingUnits',
-                    "withHistogram": False,
-                },
-                "timeRange": {
-                    "asMuchAsElements": total
-                }
-        })
+                                   body={"symbol": id_,
+                                         "chartDescription": {
+                                             "underlyingType": 'MinuteBar',
+                                             "elementSize": interval,
+                                             "elementSizeUnit": 'UnderlyingUnits',
+                                             "withHistogram": False,
+                                         },
+                                         "timeRange": {
+                                             "asMuchAsElements": total
+                                         }
+                                         })
 
     async def sync_websockets(self) -> None:
         for websocket in self._websockets_account:
@@ -345,6 +345,7 @@ class Client(Profile):
     '''
     This is example logic to trading on tradovate
     '''
+
     def logic_call_put(self, datas, support, ticker, interval):
         l_datas = len(datas)
         if l_datas < 200:
@@ -458,7 +459,7 @@ class Client(Profile):
             es_order = redis_client.get("es_order_" + ticker + "_" + str(interval))
             if es_order:
                 self._order = json.loads(es_order)
-                self._time_candle = now.hour*60 + (now.minute - now.minute%interval)
+                self._time_candle = now.hour * 60 + (now.minute - now.minute % interval)
 
         enter_order = self._order
 
@@ -477,11 +478,12 @@ class Client(Profile):
                 call_order['pre_order'] = True
                 self._order = call_order
 
-        if self._order and 'pre_order' in self._order and self._order['type'] == 'Buy Long' and self._order['pre_order'] and is_last_second and close > self._order['close']:
+        if self._order and 'pre_order' in self._order and self._order['type'] == 'Buy Long' and self._order[
+            'pre_order'] and is_last_second and close > self._order['close']:
             self._time_order = time.time()
             self._order['stop_loss'] = close - stoploss_point
             self._order['close'] = close
-            self._time_candle = now.hour*60 + (now.minute - now.minute%interval)
+            self._time_candle = now.hour * 60 + (now.minute - now.minute % interval)
 
             del self._order['pre_order']
 
@@ -503,13 +505,14 @@ class Client(Profile):
                 put_order['pre_order'] = True
                 self._order = put_order
 
-        if self._order and 'pre_order' in self._order and self._order['type'] == 'Sell Short' and self._order['pre_order'] and is_last_second and close < self._order['close']:
+        if self._order and 'pre_order' in self._order and self._order['type'] == 'Sell Short' and self._order[
+            'pre_order'] and is_last_second and close < self._order['close']:
             self._time_order = time.time()
             del self._order['pre_order']
             self._order['stop_loss'] = close + stoploss_point
             self._order['close'] = close
 
-            self._time_candle = now.hour*60 + (now.minute - now.minute%interval)
+            self._time_candle = now.hour * 60 + (now.minute - now.minute % interval)
 
             redis_client.set("order_" + ticker + "_" + str(interval), json.dumps(self._order))
             redis_client.set("time_order_" + ticker + "_" + str(interval), self._time_order)
@@ -521,16 +524,18 @@ class Client(Profile):
             order = self._order
 
             pre_candle = self._time_candle
-            cur_candle = now.hour*60 + (now.minute - now.minute%interval)
+            cur_candle = now.hour * 60 + (now.minute - now.minute % interval)
 
             if order['type'] == 'Buy Long' and not entry_in and round(point) < round(point1):
 
                 keep = False
                 if cur_candle > pre_candle:
-                    if entry_in or close > order['close']and cur_candle == pre_candle + 5 or cur_candle > pre_candle + 5 and close > close1:
+                    if entry_in or close > order[
+                        'close'] and cur_candle == pre_candle + 5 or cur_candle > pre_candle + 5 and close > close1:
                         keep = True
 
-                if is_exit_all or close <= order['stop_loss'] or entry_out and is_last_second or round(point) <= round(point5):
+                if is_exit_all or close <= order['stop_loss'] or entry_out and is_last_second or round(point) <= round(
+                        point5):
                     # Stoploss
                     gain = close - order['close']
                     order['close'] = close
@@ -566,9 +571,11 @@ class Client(Profile):
             elif order['type'] == 'Sell Short' and not entry_out and round(point) > round(point1):
                 keep = False
                 if cur_candle > pre_candle:
-                    if entry_out or close < order['close'] and cur_candle == pre_candle + 5 or cur_candle > pre_candle + 5 and close < close1:
+                    if entry_out or close < order[
+                        'close'] and cur_candle == pre_candle + 5 or cur_candle > pre_candle + 5 and close < close1:
                         keep = True
-                if is_exit_all or trend > 0 or close >= order['stop_loss'] or entry_in and is_last_second or round(point) >= round(point5):
+                if is_exit_all or trend > 0 or close >= order['stop_loss'] or entry_in and is_last_second or round(
+                        point) >= round(point5):
                     # STOPLOSS
                     gain = order['close'] - close
                     order['close'] = close
@@ -598,13 +605,14 @@ class Client(Profile):
                     # CALL Order
                     print(">>>>CALL ORDER")
 
-
-    def f_calcFractalDownZone(self, support, datas, cnt = 0, max_count = 12):
+    def f_calcFractalDownZone(self, support, datas, cnt=0, max_count=12):
         df = pd.DataFrame.from_records(datas, index=['timestamp'])
         wmaVol = df.ta.wma(length=6, close="offerVolume")
 
         l_datas = len(datas)
-        down = datas[l_datas - 4]['low'] < datas[l_datas - 5]['low'] and datas[l_datas - 5]['low'] < datas[l_datas - 6]['low'] and datas[l_datas - 3]['low'] > datas[l_datas - 4]['low'] and datas[l_datas - 2]['low'] > datas[l_datas - 3]['low'] and datas[l_datas - 4]['offerVolume'] > wmaVol[wmaVol.size - 4]
+        down = datas[l_datas - 4]['low'] < datas[l_datas - 5]['low'] and datas[l_datas - 5]['low'] < datas[l_datas - 6][
+            'low'] and datas[l_datas - 3]['low'] > datas[l_datas - 4]['low'] and datas[l_datas - 2]['low'] > \
+               datas[l_datas - 3]['low'] and datas[l_datas - 4]['offerVolume'] > wmaVol[wmaVol.size - 4]
 
         if down and datas[l_datas - 4]['close'] >= datas[l_datas - 4]['open']:
             return datas[l_datas - 4]['open']
@@ -617,6 +625,7 @@ class Client(Profile):
                     return self.f_calcFractalDownZone(support, datas[:-1], cnt, max_count)
                 else:
                     return support
+
 
 def crossover(series1: Sequence, series2: Sequence) -> bool:
     series1 = (
@@ -632,6 +641,7 @@ def crossover(series1: Sequence, series2: Sequence) -> bool:
     except IndexError:
         return False
 
+
 def crossunder(series1: Sequence, series2: Sequence) -> bool:
     series1 = (
         series1.values if isinstance(series1, pd.Series) else
@@ -645,6 +655,7 @@ def crossunder(series1: Sequence, series2: Sequence) -> bool:
         return series1[-2] > series2[-2] and series1[-1] < series2[-1]
     except IndexError:
         return False
+
 
 class NpEncoder(json.JSONEncoder):
     def default(self, obj):

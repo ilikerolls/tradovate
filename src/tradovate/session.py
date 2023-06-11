@@ -1,9 +1,16 @@
-import requests,os,redis,time,datetime,json, pytz
+import datetime
+import json
+import os
+import pytz
+import redis
+import requests
+
 from . import auth
 
 redis_client = redis.Redis(host=os.environ.get("REDIS_HOST", "redis"),
-            port=int(os.environ.get("REDIS_PORT", "6379")),
-            decode_responses=True)
+                           port=int(os.environ.get("REDIS_PORT", "6379")),
+                           decode_responses=True)
+
 
 class TOSession(requests.Session):
     def __init__(self, user_id=1):
@@ -33,23 +40,23 @@ class TOSession(requests.Session):
                 "md_access_token": token['mdAccessToken'],
                 "expiration_time": token['expirationTime'],
             }
-            redis_client.set('TO_TOKEN_'+str(user_id), json.dumps(access_token))
+            redis_client.set('TO_TOKEN_' + str(user_id), json.dumps(access_token))
 
             self._set_access_token(access_token)
 
     def _is_token_invalid(self, user_id):
         self._get_access_token(user_id)
 
-        if ( self._accessToken == None or
-            not self._accessToken["token"]
-            or self._access_token_expired()
+        if (self._accessToken == None or
+                not self._accessToken["token"]
+                or self._access_token_expired()
         ):
             return True
         else:
             return False
 
     def _get_access_token(self, user_id):
-        token = redis_client.get('TO_TOKEN_'+str(user_id))
+        token = redis_client.get('TO_TOKEN_' + str(user_id))
         if token != None:
             self._set_access_token(json.loads(token))
 

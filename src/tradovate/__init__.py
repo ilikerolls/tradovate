@@ -1,4 +1,5 @@
-from .client import TOClient
+##from .client import TOClient
+from .client import Client
 from .accounting import Accounting
 from .alerts import Alerts
 from .configuration import Configuration

@@ -1,4 +1,4 @@
-## Imports
+# Imports
 from __future__ import annotations
 from typing import AsyncGenerator
 
@@ -19,7 +19,8 @@ from shutil import which
 
 import requests
 
-## Classes
+
+# Classes
 class Profile:
     """Tradovate Profile"""
 
@@ -37,7 +38,7 @@ class Profile:
             yield account
 
     async def _get_accounts_by_endpoint(
-        self, endpoint: urls.ENDPOINT
+            self, endpoint: urls.ENDPOINT
     ) -> AsyncGenerator[Account, None]:
         '''Returns full list of accounts from given endpoint'''
         print("----------------------------------------------------1")
@@ -45,7 +46,7 @@ class Profile:
             yield await Account.from_profile(account, endpoint, self)
 
     async def _get_account_by_id(
-        self, ids: int | list[int]
+            self, ids: int | list[int]
     ) -> Account | tuple[Account]:
         '''Returns Account or list of Accounts from ID or IDs'''
         accounts = []
@@ -77,8 +78,8 @@ class Profile:
         return self.authenticated
 
     async def get_account(
-        self, *, id_: int | None = None,
-        name: str | None = None, nickname: str | None = None
+            self, *, id_: int | None = None,
+            name: str | None = None, nickname: str | None = None
     ) -> Account | None:
         '''Get account by id, name, or nickname'''
         if id_ is not None:
@@ -92,8 +93,8 @@ class Profile:
         return None
 
     async def get_accounts(
-        self, *, ids: list[int] | None = None,
-        names: list[str] | None = None, nicknames: list[str] | None = None
+            self, *, ids: list[int] | None = None,
+            names: list[str] | None = None, nicknames: list[str] | None = None
     ) -> tuple[Account] | None:
         '''Get accounts by ids, names, or nicknames or full account list'''
         # -TODO: Async Generator?
@@ -124,4 +125,3 @@ class Profile:
     @property
     def session(self) -> Session:
         return self._session
-
