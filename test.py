@@ -2,7 +2,8 @@ from __future__ import (absolute_import, division, print_function, unicode_liter
 import src.tradovate as td
 
 if __name__ == "__main__":
-    trading = td.Accounting()
+    client = td.Client()
+    trading = td.Accounting(client.session)
 
     a = trading.account_list()
 

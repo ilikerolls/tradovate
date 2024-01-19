@@ -1,7 +1,9 @@
-redis
-pytz
-requests
-websocket-client
-aiohttp
-numpy
-pandas_ta
+redis~=5.0.1
+pytz~=2023.3.post1
+requests~=2.31.0
+aiohttp~=3.9.1
+numpy~=1.26.2
+PyYAML~=6.0.1
+setuptools~=65.5.1
+setenv~=0.0.1
+webhook_listener~=1.2.0

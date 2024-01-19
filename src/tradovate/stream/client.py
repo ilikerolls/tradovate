@@ -13,13 +13,13 @@ from typing import Sequence
 from numbers import Number
 
 import pandas_ta as pd
+from ..config import CONFIG, redis_client
 
 ## Constants
 log = logging.getLogger(__name__)
-redis_client = redis.Redis(host=os.environ.get("REDIS_HOST", "redis"),
-                           port=int(os.environ.get("REDIS_PORT", "6379")),
-                           decode_responses=True)
-
+#redis_client = redis.Redis(host=os.environ.get("REDIS_HOST", "redis"),
+#                           port=int(os.environ.get("REDIS_PORT", "6379")),
+#                           decode_responses=True)
 
 ## Classes
 class Client(Profile):

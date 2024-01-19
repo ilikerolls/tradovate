@@ -3,20 +3,25 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import os
-import redis
 from datetime import timedelta
 
 from .accounting import Accounting
 from .auth import Profile
 from .auth.session import Session
 from .stream.utils.typing import CredentialAuthDict
+from .config import redis_client
 
 ## Constants
 log = logging.getLogger(__name__)
-redis_client = redis.Redis(host=os.environ.get("REDIS_HOST", "redis"),
-                           port=int(os.environ.get("REDIS_PORT", "6379")),
-                           decode_responses=True)
+#redis_client = redis.Redis(host=os.environ.get("REDIS_HOST", "redis"),
+#                           port=int(os.environ.get("REDIS_PORT", "6379")),
+#                           decode_responses=True)
+
+# redis_client = redis.Redis(host=CONFIG['REDIS'].get("redis_host", "localhost"),
+#                            port=CONFIG['REDIS'].get("redis_port", 6379),
+#                            username=CONFIG['REDIS'].get("redis_user", "default"),
+#                            password=CONFIG['REDIS'].get("redis_passwd", None),
+#                            decode_responses=True)
 
 
 ## Classes
@@ -25,7 +30,8 @@ class Client(Profile):
 
     # -Constructor
     def __init__(self) -> Client:
-        self._loop: asyncio.AbstractEventLoop = asyncio.new_event_loop()
+        # self._loop: asyncio.AbstractEventLoop = asyncio.new_event_loop()
+        self._loop = asyncio.get_event_loop()
         self._session: Session = Session(loop=self._loop)
         self._handle_auto_renewal: asyncio.TimerHandle | None = None
 

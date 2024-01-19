@@ -3,6 +3,8 @@ from __future__ import annotations
 from enum import Enum
 import os
 
+from src.tradovate.config import CONFIG
+
 ## Constants
 # -Base URLs
 _domains = (
@@ -20,7 +22,7 @@ wss_base_live, wss_base_demo, wss_base_market = [
 ]
 # -Authorization
 #  -HTTP[Live Only]
-http_base_auth = http_base_live + "auth/" if os.getenv('TO_ENV') == 'LIVE' else http_base_demo + "auth/"
+http_base_auth = http_base_live + "auth/" if CONFIG['TO'].get('to_env') == 'LIVE' else http_base_demo + "auth/"
 http_auth_oauth = http_base_auth + "oauthtoken"
 http_auth_request = http_base_auth + "accesstokenrequest"
 http_auth_renew = http_base_auth + "renewaccesstoken"

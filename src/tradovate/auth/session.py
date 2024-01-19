@@ -3,9 +3,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
-import os
 import pytz
-import redis
 from asyncio import AbstractEventLoop
 from datetime import datetime, timedelta, timezone
 
@@ -17,10 +15,17 @@ from ..stream.utils.errors import (
 )
 
 log = logging.getLogger(__name__)
+from ..config import CONFIG, redis_client
 
-redis_client = redis.Redis(host=os.environ.get("REDIS_HOST", "redis"),
-                           port=int(os.environ.get("REDIS_PORT", "6379")),
-                           decode_responses=True)
+# redis_client = redis.Redis(host=os.environ.get("REDIS_HOST", "redis"),
+#                            port=int(os.environ.get("REDIS_PORT", "6379")),
+#                            username=os.environ.get("REDIS_USER", None),
+#                            decode_responses=True)
+
+# redis_client = redis.Redis(host=CONFIG['REDIS'].get("redis_host", "redis"),
+#                            port=CONFIG['REDIS'].get("redis_port", 6379),
+#                            username=CONFIG['REDIS'].get("redis_user", None),
+#                            decode_responses=True)
 
 
 class Session:
@@ -33,7 +38,7 @@ class Session:
         self._loop: AbstractEventLoop = loop if loop else asyncio.get_event_loop()
         self._loop.create_task(self.__ainit__(), name="session-client")
 
-        self.URL: str = urls.http_base_live if os.getenv('TO_ENV') == 'LIVE' else urls.http_base_demo
+        self.URL: str = urls.http_base_live if CONFIG['TO'].get('to_env') == 'LIVE' else urls.http_base_demo
         tokens = redis_client.get('TO_TOKEN')
         if tokens != None:
             tokens = json.loads(tokens)
@@ -84,18 +89,27 @@ class Session:
         self.authenticated.clear()
 
     async def request_access_token(self) -> int:
-        '''Request Session authorization'''
+        """Request Session authorization"""
         await self.__aenter__()
 
         log.debug("Session event 'request'")
 
+        # auth: dict = {
+        #     "name": os.getenv('TO_NAME'),
+        #     "password": os.getenv('TO_PASSWORD'),
+        #     "appId": os.getenv('TO_APPID'),
+        #     "appVersion": "1.0",
+        #     "cid": os.getenv('TO_CID'),
+        #     "sec": os.getenv('TO_SEC')
+        # }
         auth: dict = {
-            "name": os.getenv('TO_NAME'),
-            "password": os.getenv('TO_PASSWORD'),
-            "appId": os.getenv('TO_APPID'),
-            "appVersion": "1.0",
-            "cid": os.getenv('TO_CID'),
-            "sec": os.getenv('TO_SEC')
+         "name": CONFIG['TO'].get("to_name"),
+         "password": CONFIG['TO'].get('to_password'),
+         "appId": CONFIG['TO'].get('to_appid'),
+         "appVersion": "1.0",
+         "cid": CONFIG['TO'].get('to_cid'),
+         "sec": CONFIG['TO'].get('to_sec'),
+         "deviceId": CONFIG['TO'].get('to_devid', 1)
         }
 
         res = await self._session.post(urls.http_auth_request, json=auth, ssl=False)

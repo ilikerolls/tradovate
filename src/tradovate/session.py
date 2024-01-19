@@ -6,10 +6,12 @@ import redis
 import requests
 
 from . import auth
+from src.tradovate.config import redis_client
 
-redis_client = redis.Redis(host=os.environ.get("REDIS_HOST", "redis"),
-                           port=int(os.environ.get("REDIS_PORT", "6379")),
-                           decode_responses=True)
+# redis_client = redis.Redis(host=os.environ.get("REDIS_HOST", "redis"),
+#                            port=int(os.environ.get("REDIS_PORT", "6379")),
+#                            decode_responses=True)
+
 
 
 class TOSession(requests.Session):
