@@ -4,6 +4,7 @@ import yaml
 import logging
 from logging.handlers import RotatingFileHandler
 from src.constants import CONFIG_FILE, LOG_FILE, LOG_FILE_ERR, LOGGER_NAME
+from src.utils.general import csv_to_list
 
 URLs = {
     "DEMO": "https://demo.tradovateapi.com/v1",
@@ -26,6 +27,7 @@ def load_config(temp_conf: dict = None) -> dict:
     if not temp_conf:
         with open(CONFIG_FILE, 'r') as yml_file:
             temp_conf = yaml.load(yml_file, Loader=yaml.Loader)
+            temp_conf['WEBHOOK']['actions'] = csv_to_list(temp_conf['WEBHOOK']['actions'])
     return temp_conf
 
 

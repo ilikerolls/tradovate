@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import asyncio
 import json
-import logging
 import pytz
 from asyncio import AbstractEventLoop
 from datetime import datetime, timedelta, timezone
@@ -13,34 +12,23 @@ from ..stream.utils import urls, timestamp_to_datetime
 from ..stream.utils.errors import (
     LoginInvalidException, LoginCaptchaException
 )
-
-log = logging.getLogger(__name__)
-from ..config import CONFIG, redis_client
-
-# redis_client = redis.Redis(host=os.environ.get("REDIS_HOST", "redis"),
-#                            port=int(os.environ.get("REDIS_PORT", "6379")),
-#                            username=os.environ.get("REDIS_USER", None),
-#                            decode_responses=True)
-
-# redis_client = redis.Redis(host=CONFIG['REDIS'].get("redis_host", "redis"),
-#                            port=CONFIG['REDIS'].get("redis_port", 6379),
-#                            username=CONFIG['REDIS'].get("redis_user", None),
-#                            decode_responses=True)
+from src.tradovate.config import CONFIG, redis_client, logger
 
 
 class Session:
 
     # -Constructor
     def __init__(self, *, loop: AbstractEventLoop | None = None) -> Session:
+        """ Authenticates with Tradovate & Holds Session Data """
         self.authenticated: asyncio.Event = asyncio.Event()
         self.token_expiration: datetime | None = None
         self._session: ClientSession | None = None
-        self._loop: AbstractEventLoop = loop if loop else asyncio.get_event_loop()
+        self._loop: AbstractEventLoop = loop or asyncio.get_event_loop()
         self._loop.create_task(self.__ainit__(), name="session-client")
 
         self.URL: str = urls.http_base_live if CONFIG['TO'].get('to_env') == 'LIVE' else urls.http_base_demo
         tokens = redis_client.get('TO_TOKEN')
-        if tokens != None:
+        if tokens is not None:
             tokens = json.loads(tokens)
             age_secs = self._get_age_secs(tokens)
 
@@ -92,24 +80,15 @@ class Session:
         """Request Session authorization"""
         await self.__aenter__()
 
-        log.debug("Session event 'request'")
-
-        # auth: dict = {
-        #     "name": os.getenv('TO_NAME'),
-        #     "password": os.getenv('TO_PASSWORD'),
-        #     "appId": os.getenv('TO_APPID'),
-        #     "appVersion": "1.0",
-        #     "cid": os.getenv('TO_CID'),
-        #     "sec": os.getenv('TO_SEC')
-        # }
+        logger.debug("Session event 'request'")
         auth: dict = {
-         "name": CONFIG['TO'].get("to_name"),
-         "password": CONFIG['TO'].get('to_password'),
-         "appId": CONFIG['TO'].get('to_appid'),
-         "appVersion": "1.0",
-         "cid": CONFIG['TO'].get('to_cid'),
-         "sec": CONFIG['TO'].get('to_sec'),
-         "deviceId": CONFIG['TO'].get('to_devid', 1)
+            "name": CONFIG['TO'].get("to_name"),
+            "password": CONFIG['TO'].get('to_password'),
+            "appId": CONFIG['TO'].get('to_appid'),
+            "appVersion": "1.0",
+            "cid": CONFIG['TO'].get('to_cid'),
+            "sec": CONFIG['TO'].get('to_sec'),
+            "deviceId": CONFIG['TO'].get('to_devid', 1)
         }
 
         res = await self._session.post(urls.http_auth_request, json=auth, ssl=False)
@@ -127,7 +106,7 @@ class Session:
             'Content-Type': 'application/json',
             'Accept': 'application/json',
         }
-        log.debug("Session event 'renew'")
+        logger.debug("Session event 'renew'")
         res = await self._session.post(urls.http_auth_renew)
         res_dict = await self._update_authorization(res)
 
@@ -137,7 +116,7 @@ class Session:
     async def _update_authorization(
             self, res: ClientResponse
     ) -> dict[str, str]:
-        '''Updates Session authorization fields'''
+        """Updates Session authorization fields"""
         res_dict = await res.json()
 
         # print(">>>>>>>>>>>+++++", res_dict)
@@ -154,7 +133,7 @@ class Session:
                 bool(res_dict['p-captcha'])
             )
         # -Access Token
-        log.debug("Session event 'authorized'")
+        logger.debug("Session event 'authorized'")
         self.authenticated.set()
 
         redis_client.set('TO_TOKEN', json.dumps(res_dict))

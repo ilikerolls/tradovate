@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+
 class Alerts:
     """Class of methods related to alerts."""
 

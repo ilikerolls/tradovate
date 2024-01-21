@@ -1,6 +1,4 @@
-## Imports
 from __future__ import annotations
-import logging
 from typing import TYPE_CHECKING
 
 from .session import Session
@@ -10,8 +8,7 @@ from ..stream.utils.typing import AccountDict
 if TYPE_CHECKING:
     from . import Profile
 
-## Constants
-log = logging.getLogger(__name__)
+from src.tradovate.config import logger
 
 
 ## Classes
@@ -43,8 +40,8 @@ class Account:
     async def from_profile(
         cls, account: AccountDict, endpoint: urls.ENDPOINT, profile: Profile
     ) -> Account:
-        '''Create account from Profile parameters'''
-        log.debug(f"Getting account {account['id']}")
+        """Create account from Profile parameters"""
+        logger.debug(f"Getting account {account['id']}")
         return cls(
             account['id'], account['userId'], account['name'],
             profile.session, endpoint,

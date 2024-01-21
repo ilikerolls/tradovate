@@ -2,36 +2,27 @@
 from __future__ import annotations
 
 import asyncio
-import logging
 from datetime import timedelta
 
 from .accounting import Accounting
 from .auth import Profile
 from .auth.session import Session
 from .stream.utils.typing import CredentialAuthDict
-from .config import redis_client
-
-## Constants
-log = logging.getLogger(__name__)
-#redis_client = redis.Redis(host=os.environ.get("REDIS_HOST", "redis"),
-#                           port=int(os.environ.get("REDIS_PORT", "6379")),
-#                           decode_responses=True)
-
-# redis_client = redis.Redis(host=CONFIG['REDIS'].get("redis_host", "localhost"),
-#                            port=CONFIG['REDIS'].get("redis_port", 6379),
-#                            username=CONFIG['REDIS'].get("redis_user", "default"),
-#                            password=CONFIG['REDIS'].get("redis_passwd", None),
-#                            decode_responses=True)
+from src.tradovate.config import logger
+from ..utils.general import Singleton
 
 
 ## Classes
-class Client(Profile):
+class Client(Profile, metaclass=Singleton):
     """Tradovate Client"""
 
     # -Constructor
     def __init__(self) -> Client:
-        # self._loop: asyncio.AbstractEventLoop = asyncio.new_event_loop()
-        self._loop = asyncio.get_event_loop()
+        logger.debug("Starting asynchio Event Loop for Connecting to Tradovate...")
+        try:
+            self._loop: asyncio.AbstractEventLoop = asyncio.get_running_loop()
+        except RuntimeError:
+            self._loop: asyncio.AbstractEventLoop = asyncio.new_event_loop()
         self._session: Session = Session(loop=self._loop)
         self._handle_auto_renewal: asyncio.TimerHandle | None = None
 
@@ -46,7 +37,7 @@ class Client(Profile):
         return Accounting(self._session)
 
     def run(self, event, *args, **kwargs) -> None:
-        '''Public client loop run method'''
+        """Public client loop run method"""
         self._loop.run_until_complete(self._run(event, *args, **kwargs))
         try:
             self._loop.run_forever()
@@ -61,8 +52,8 @@ class Client(Profile):
 
     # -Instance Methods: Private
     def _dispatch(self, event: str, *args, **kwargs) -> None:
-        '''Dispatch task for event name'''
-        log.debug(f"Client event '{event}'")
+        """Dispatch task for event name"""
+        logger.debug(f"Client event '{event}'")
 
         method = event
         try:
@@ -73,7 +64,7 @@ class Client(Profile):
             self._loop.create_task(coro(*args, **kwargs))
 
     async def _renewal(self) -> None:
-        '''Task for Session authorization renewal loop'''
+        """Task for Session authorization renewal loop"""
         while self._session.authenticated.is_set():
             time = self._session.token_duration - timedelta(minutes=10)
             await asyncio.sleep(time.total_seconds())
@@ -83,26 +74,23 @@ class Client(Profile):
     async def authorize(
             self, auth: CredentialAuthDict, auto_renew: bool = True
     ) -> None:
-        '''Initialize Client authorization and auto-renewal'''
+        """Initialize Client authorization and auto-renewal"""
         self.id = await self._session.request_access_token(auth)
         if auto_renew:
             self._loop.create_task(self._renewal(), name="client-renewal")
 
     async def authorizion_hold(self) -> None:
-        '''Wait for all authentication setup to be finished'''
+        """Wait for all authentication setup to be finished"""
         await self._session.authenticated.wait()
 
     async def close(self) -> None:
         await self._session.close()
 
     async def process_message(self) -> None:
-        '''Task for WebSocket loop'''
-        print(">>>>>>>")
+        """Task for WebSocket loop"""
+        print("WebSocket loop>>>>>>>")
 
     # -Properties: Authenticated
     @property
     def authenticated(self) -> bool:
-        if not self._session.authenticated.is_set():
-            return False
-
-        return True
+        return bool(self._session.authenticated.is_set())

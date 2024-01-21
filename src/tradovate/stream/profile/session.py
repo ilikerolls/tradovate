@@ -21,7 +21,7 @@ log = logging.getLogger(__name__)
 
 ## Classes
 class Session:
-    """Tradovate Session"""
+    """Gets/Holds Tradovate Session Access Token"""
 
     # -Constructor
     def __init__(self, *, loop: AbstractEventLoop | None = None) -> Session:

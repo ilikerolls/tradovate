@@ -1,7 +1,8 @@
 import time
 import json
 import webhook_listener
-from src.tradovate.config import logger
+from src.tradovate.config import logger, CONFIG
+from src.webhooks.events.action import ActionManager
 
 
 class WHListener:
@@ -13,10 +14,14 @@ class WHListener:
         """
         self._wh_server = None
         self.port = port
+        # Register Actions to be taken On Successful Webhook
+        self.action_man = ActionManager()
+        for action in CONFIG['WEBHOOK']['actions']:
+            self.action_man.add_action(name=action)
         if auto_start:
             self.start()
 
-    def process_post_request(self, request, *args, **kwargs):
+    def _process_post_request(self, request, *args, **kwargs):
         """
         Process a Webhook Request
         :param request: cherrypy object
@@ -28,6 +33,9 @@ class WHListener:
             body = request.body.read(int(request.headers['Content-Length']))
             body_json = json.loads(body.decode('utf-8'))
             logger.info(f"Webhook Data Successfully Received\n{body_json}")
+            for action in self.action_man.get_all():
+                action.set_data(data=body_json)
+                action.run()
             return "Sent alert", 200
         except Exception as e:
             logger.error("[X]", "Error:\n>", e)
@@ -38,7 +46,7 @@ class WHListener:
         Start a Webhook Listener in the background through Python Threading
         """
         logger.info("Starting Webhook Listener and putting it in the background via a Thread...")
-        self._wh_server = webhook_listener.Listener(handlers={"POST": self.process_post_request}, port=self.port)
+        self._wh_server = webhook_listener.Listener(handlers={"POST": self._process_post_request}, port=self.port)
         self._wh_server.start()
 
     def stop(self):
