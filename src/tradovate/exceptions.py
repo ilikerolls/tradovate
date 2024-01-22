@@ -39,9 +39,7 @@ class TOAPIError(Exception):
             self.data = data
 
     def __str__(self):
-        if self.code:
-            return "{}: {}".format(self.code, self.message)
-        return self.data
+        return f"{self.code}: {self.message}" if self.code else self.data
 
 
 class TooManyRequestsError(TOAPIError):

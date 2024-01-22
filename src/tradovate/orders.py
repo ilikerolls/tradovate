@@ -329,11 +329,15 @@ class Orders(Client):
                           text: str = None,
                           activation_time: str = None,
                           custom_tag_50: str = None,
-                          is_automated: bool = None) -> dict:
+                          is_automated: bool = True) -> dict:
         """
         Make a request to place an order.
         Depending on the order type, the parameters vary.
         """
+        if account_spec is None:
+            account_spec = self.name
+        if account_id is None:
+            account_id = self.id
         return await self._session.post(
             url="order/placeorder",
             payload={

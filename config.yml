@@ -14,7 +14,7 @@ TO:
   to_devid: 136e4264-e69c-23e6-b566-527813124131
 WEBHOOK:
   # Comma delimited list of actions & event handlers
-  actions: print_action
+  actions: print_action, tradovate_action
 REDIS:
   # Setup Redis Host Configuration
   redis_host: 192.168.40.17

@@ -79,6 +79,7 @@ redis_client = redis.Redis(host=CONFIG['REDIS'].get("redis_host", "localhost"),
                            username=CONFIG['REDIS'].get("redis_user", "default"),
                            password=CONFIG['REDIS'].get("redis_passwd", None),
                            decode_responses=True)
+
 # Authorization Dictionary for Tradovate
 to_auth_dict: dict = {
     "name": CONFIG['TO'].get("to_name"),

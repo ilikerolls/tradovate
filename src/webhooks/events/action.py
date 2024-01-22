@@ -41,9 +41,9 @@ class Action:
     # action_man = ActionManager()
 
     def __init__(self):
-        self.name = self.get_name()
+        self.name = str(self.get_name())
         # self.logs = []
-        self._raw_data = None
+        self.data = None
 
     def get_name(self):
         return type(self).__name__
@@ -58,27 +58,27 @@ class Action:
     #     """
     #     return self.logs
 
-#    def register(self):
-#        """ Registers action with manager """
-#        self.action_man._actions.append(self)
-#        logger.info(f'ACTION REGISTERED --->\t{str(self)}')
+    #    def register(self):
+    #        """ Registers action with manager """
+    #        self.action_man._actions.append(self)
+    #        logger.info(f'ACTION REGISTERED --->\t{str(self)}')
 
     def set_data(self, data: dict):
         """Sets data for action"""
-        self._raw_data = data
+        self.data = data
 
     def validate_data(self):
         """Ensures data is valid"""
-        if not self._raw_data:
+        if not self.data:
             raise ValueError('No data provided to action')
-        return self._raw_data
+        return self.data
 
     def run(self, *args, **kwargs):
         """
         Runs, logs action
         """
-        self.validate_data()
         logger.info(f'ACTION TRIGGERED --->\t{str(self)}')
+        return self.validate_data()
         # self.logs.append(ActionLogEvent('INFO', 'action run'))
         # log_event = LogEvent(self.name, 'action_run', datetime.datetime.now(), f'{self.name} triggered')
         # log_event.write()

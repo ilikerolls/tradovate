@@ -32,11 +32,12 @@ class WHListener:
         try:
             body = request.body.read(int(request.headers['Content-Length']))
             body_json = json.loads(body.decode('utf-8'))
-            logger.info(f"Webhook Data Successfully Received\n{body_json}")
-            for action in self.action_man.get_all():
-                action.set_data(data=body_json)
-                action.run()
-            return "Sent alert", 200
+            if len(body_json) > 0:
+                logger.info(f"Webhook Data Successfully Received\n{body_json}")
+                for action in self.action_man.get_all():
+                    action.set_data(data=body_json)
+                    action.run()
+                return "Sent alert", 200
         except Exception as e:
             logger.error("[X]", "Error:\n>", e)
             return "Error", 400

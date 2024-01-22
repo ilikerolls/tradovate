@@ -1,4 +1,5 @@
 from src.webhooks.events.action import Action
+from src.tradovate.config import logger
 
 
 class PrintAction(Action):
@@ -10,6 +11,5 @@ class PrintAction(Action):
         """
         Custom run method. Add your custom logic here.
         """
-        print(self.name, '---> action has run!')
         data = self.validate_data()  # always get data from webhook by calling this method!
-        print('Data from webhook:', data)
+        logger.info(f'Data from webhook:{data}')
