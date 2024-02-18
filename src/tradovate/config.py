@@ -28,6 +28,7 @@ def load_config(temp_conf: dict = None) -> dict:
         with open(CONFIG_FILE, 'r') as yml_file:
             temp_conf = yaml.load(yml_file, Loader=yaml.Loader)
             temp_conf['WEBHOOK']['actions'] = csv_to_list(temp_conf['WEBHOOK']['actions'])
+            temp_conf['WEBHOOK']['port'] = temp_conf['WEBHOOK'].get('port', 80)
     return temp_conf
 
 
@@ -38,11 +39,9 @@ def load_logger(temp_conf: dict):
     """
     log_level = temp_conf.get('debug_level', 'INFO').upper()
     log_backups = temp_conf.get('log_backups', 1)
-    handlers = []
     # Log to standard output for debugging if this constant is set to True
     std_out_handler = logging.StreamHandler(sys.stdout)
-    handlers.append(std_out_handler)
-
+    handlers = [std_out_handler]
     # Main Logfile handler
     main_handler = RotatingFileHandler(LOG_FILE, maxBytes=5242880, backupCount=log_backups,
                                        encoding="UTF-8")

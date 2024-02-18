@@ -14,9 +14,13 @@ class ActionManager:
         """
         snake_case_name = snake_case(name)
         logger.info(f'Registering action --->\tsrc.webhooks.events.custom.{name} with class: {snake_case_name}')
-        # Get & import Action Object/class
-        action = getattr(import_module(f'src.webhooks.events.custom.{name}', snake_case_name), snake_case_name)()
-        self._actions.append(action)
+        try:  # Get & import Action Object/class
+            action = getattr(import_module(f'src.webhooks.events.custom.{name}', snake_case_name), snake_case_name)()
+            self._actions.append(action)
+        except Exception as e:
+            logger.exception(
+                f"***WARNING: NOT Loading Action {name}! Couldn't load action from: src.webhooks.events.custom.{name} "
+                f"with Class Name: {snake_case_name}. Error:\n{e}")
 
     def get_all(self):
         """
@@ -41,12 +45,9 @@ class Action:
     # action_man = ActionManager()
 
     def __init__(self):
-        self.name = str(self.get_name())
+        self.name = str(type(self).__name__)
         # self.logs = []
         self.data = None
-
-    def get_name(self):
-        return type(self).__name__
 
     def __str__(self):
         return f'{self.name}'

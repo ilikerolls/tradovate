@@ -7,3 +7,7 @@ PyYAML~=6.0.1
 setuptools~=65.5.1
 setenv~=0.0.1
 webhook_listener~=1.2.0
+ngrok~=0.12.1
+quart~=0.19.4
+flask~=3.0.0
+pyngrok~=7.0.5

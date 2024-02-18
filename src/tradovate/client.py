@@ -14,10 +14,11 @@ from ..utils.general import Singleton
 
 ## Classes
 class Client(Profile, metaclass=Singleton):
-    """Tradovate Client"""
+    """ Tradovate Client & start of ALL Tradovate async classes inherit from here """
 
     # -Constructor
     def __init__(self) -> Client:
+        # Profile.__init__() # No need to call Super as we're Overriding self.id & self._session
         logger.debug("Starting asynchio Event Loop for Connecting to Tradovate...")
         try:
             self._loop: asyncio.AbstractEventLoop = asyncio.get_running_loop()
@@ -75,7 +76,8 @@ class Client(Profile, metaclass=Singleton):
             self, auth: CredentialAuthDict, auto_renew: bool = True
     ) -> None:
         """Initialize Client authorization and auto-renewal"""
-        self.id = await self._session.request_access_token(auth)
+        token_req = await self._session.request_access_token()
+        self.id = token_req['accessToken']
         if auto_renew:
             self._loop.create_task(self._renewal(), name="client-renewal")
 

@@ -7,4 +7,7 @@ CONFIG_FILE = os.path.join(ROOT_DIR, "config.yml")
 # Log Files
 LOGGER_NAME = 'TO_BOT'
 LOG_FILE = os.path.join(ROOT_DIR, "logs", f"{LOGGER_NAME}.log")
-LOG_FILE_ERR = os.path.join(ROOT_DIR, "logs", f"{LOGGER_NAME}.log")
+LOG_FILE_ERR = os.path.join(ROOT_DIR, "logs", f"{LOGGER_NAME}_err.log")
+# SSL Certificates
+SSL_CRT = os.path.join(ROOT_DIR, "ssl", "cert.crt")
+SSL_KEY = os.path.join(ROOT_DIR, "ssl", "cert.key")

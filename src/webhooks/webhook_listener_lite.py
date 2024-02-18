@@ -1,7 +1,10 @@
+import os.path
 import time
 import json
 import webhook_listener
+import ngrok
 from src.tradovate.config import logger, CONFIG
+from src.constants import SSL_CRT, SSL_KEY
 from src.webhooks.events.action import ActionManager
 
 
@@ -13,6 +16,7 @@ class WHListener:
         :param auto_start: Optional: True = Start Listening for Webhooks, False = Must start Manually with start method
         """
         self._wh_server = None
+        self._ngrok_listener = None
         self.port = port
         # Register Actions to be taken On Successful Webhook
         self.action_man = ActionManager()
@@ -37,17 +41,29 @@ class WHListener:
                 for action in self.action_man.get_all():
                     action.set_data(data=body_json)
                     action.run()
-                return "Sent alert", 200
         except Exception as e:
-            logger.error("[X]", "Error:\n>", e)
-            return "Error", 400
+            logger.error(f"Error Processing Incoming JSON call:\n{e}")
 
     def start(self):
         """
         Start a Webhook Listener in the background through Python Threading
+        NGROK: https://ngrok.github.io/ngrok-python/index.html#full-configuration
         """
-        logger.info("Starting Webhook Listener and putting it in the background via a Thread...")
-        self._wh_server = webhook_listener.Listener(handlers={"POST": self._process_post_request}, port=self.port)
+        # if os.path.isfile(SSL_CRT) and os.path.isfile(SSL_KEY):
+        #    self._wh_server = webhook_listener.Listener(handlers={"POST": self._process_post_request}, port=self.port,
+        #                                                sslCert=SSL_CRT, sslPrivKey=SSL_KEY)
+        #    logger.info(f"Webhook Listener: SSL Enabled with CRT: {SSL_CRT}, KEY: {SSL_KEY}")
+        # else:
+        self._wh_server = webhook_listener.Listener(host='127.0.0.1', handlers={"POST": self._process_post_request},
+                                                    port=self.port, logger=logger, logScreen=True)
+        # logger.warning(f"Webhook Listener: SSL Disabled. Couldn't find SSL files CRT: {SSL_CRT}, KEY: {SSL_KEY}")
+        logger.info(f"Started Webhook Listener on {self._wh_server.host}:{self._wh_server.port} and putting it in the "
+                    f"background via a Thread...")
+        if CONFIG['WEBHOOK']['NGROK']['enabled']:
+            self._ngrok_listener = ngrok.forward(f"127.0.0.1:{self.port}",
+                                                 authtoken=CONFIG['WEBHOOK']['NGROK']['authtoken'], schemes=["http"],
+                                                 proto='http')
+            logger.info(f"Started NGROK on {self._ngrok_listener.url()}")
         self._wh_server.start()
 
     def stop(self):

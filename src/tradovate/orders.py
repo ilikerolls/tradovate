@@ -276,7 +276,7 @@ class Orders(Client):
                         text: str = None,
                         activation_time: str = None,
                         custom_tag_50: str = None,
-                        is_automated: bool = None,
+                        is_automated: bool = True,
                         other_cl_ord_id: str = None,
                         other_price: float = None,
                         other_stop_price: float = None,
@@ -334,15 +334,13 @@ class Orders(Client):
         Make a request to place an order.
         Depending on the order type, the parameters vary.
         """
-        if account_spec is None:
-            account_spec = self.name
-        if account_id is None:
-            account_id = self.id
+        account_spec = account_spec or self.name
+        account_id = account_id or self.id
         return await self._session.post(
             url="order/placeorder",
             payload={
                 "accountSpec": account_spec, "accountId": account_id, "clOrdId": cl_ord_id,
-                "action": action, "symbol": symbol, "orderQty": order_qty, "orderType": order_type,
+                "action": action.title(), "symbol": symbol.upper(), "orderQty": order_qty, "orderType": order_type.title(),
                 "price": price, "stopPrice": stop_price, "maxShow": max_show, "pegDifference": peg_difference,
                 "timeInForce": time_in_force, "expireTime": expire_time, "text": text,
                 "activationTime": activation_time,
@@ -351,7 +349,7 @@ class Orders(Client):
         )
 
     async def place_OSO(self,
-                        action: str,
+                        action: str, # side Buy or Sell
                         symbol: str,
                         order_qty: int,
                         order_type: str,
@@ -369,7 +367,7 @@ class Orders(Client):
                         text: str = None,
                         activation_time: str = None,
                         custom_tag_50: str = None,
-                        is_automated: bool = None,
+                        is_automated: bool = True,
                         bracket_1_cl_order_id: str = None,
                         bracket_1_price: float = None,
                         bracket_1_stop_price: float = None,
@@ -396,7 +394,7 @@ class Orders(Client):
             url="order/placeoso",
             payload={
                 "accountSpec": account_spec, "accountId": account_id, "clOrdId": cl_ord_id,
-                "action": action, "symbol": symbol, "orderQty": order_qty, "orderType": order_type,
+                "action": action.title(), "symbol": symbol.upper(), "orderQty": order_qty, "orderType": order_type,
                 "price": price, "stopPrice": stop_price, "maxShow": max_show, "pegDifference": peg_difference,
                 "timeInForce": time_in_force, "expireTime": expire_time, "text": text,
                 "activationTime": activation_time,
@@ -440,7 +438,7 @@ class Orders(Client):
     async def order_strategy_L_dependents(self, master_ids: list[int]) -> dict:
         """Retrieves all entities of OrderStrategy type related to multiple entities of Account type."""
         return await self._session.get(
-            f"orderStrategy/ldeps?masterids={','.join([str(id) for id in master_ids])}",
+            f"orderStrategy/ldeps?masterids={','.join([str(_id) for _id in master_ids])}",
         )
 
     async def order_strategy_list(self) -> dict:

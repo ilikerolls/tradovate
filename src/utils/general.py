@@ -1,3 +1,5 @@
+import contextlib
+from datetime import datetime
 from threading import Lock
 import re
 
@@ -35,6 +37,11 @@ def csv_to_list(string: str, cast_to=str) -> list:
     """
     return list(map(cast_to, string.replace(' ', '').split(',')))
 
+def parse_a_date(text):
+    for fmt in ('%Y-%m-%dT%H:%M:%SZ', '%Y-%m-%dT%H:%M:%S.%f%z', '%Y-%m-%dT%H:%M:%S%z'):
+        with contextlib.suppress(ValueError):
+            return datetime.strptime(text, fmt)
+    raise ValueError('no valid date format found')
 
 if __name__ == "__main__":
     print(f"Snake case name of print_action = {snake_case(text='print_action')}")

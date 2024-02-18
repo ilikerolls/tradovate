@@ -225,7 +225,7 @@ class Client(Profile):
             live_websocket: bool = True, demo_websocket: bool = False,
             mdlive_websocket: bool = True
     ) -> None:
-        '''Public client loop run method'''
+        """Public client loop run method"""
         self._loop.run_until_complete(self._subcribe(
             auth, auto_renew, ticker, interval, live_websocket,
             demo_websocket, mdlive_websocket

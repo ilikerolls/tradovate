@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import asyncio
 import json
+from typing import Dict
+
 import pytz
 from asyncio import AbstractEventLoop
 from datetime import datetime, timedelta, timezone
@@ -12,7 +14,8 @@ from ..stream.utils import urls, timestamp_to_datetime
 from ..stream.utils.errors import (
     LoginInvalidException, LoginCaptchaException
 )
-from src.tradovate.config import CONFIG, redis_client, logger
+from src.tradovate.config import CONFIG, redis_client, logger, to_auth_dict
+from ...utils.general import parse_a_date
 
 
 class Session:
@@ -26,7 +29,7 @@ class Session:
         self._loop: AbstractEventLoop = loop or asyncio.get_event_loop()
         self._loop.create_task(self.__ainit__(), name="session-client")
 
-        self.URL: str = urls.http_base_live if CONFIG['TO'].get('to_env') == 'LIVE' else urls.http_base_demo
+        self.URL: str = urls.http_base_live if CONFIG['TO'].get('to_env').upper() == 'LIVE' else urls.http_base_demo
         tokens = redis_client.get('TO_TOKEN')
         if tokens is not None:
             tokens = json.loads(tokens)
@@ -61,7 +64,7 @@ class Session:
         str_ = f"Session(authenticated={self.authenticated.is_set()}"
         if self.authenticated.is_set():
             str_ += f", duration={self.token_duration}"
-        return str_ + ")"
+        return f"{str_})"
 
     async def __aenter__(self):
         """Enter client session."""
@@ -76,29 +79,24 @@ class Session:
         await self._session.close()
         self.authenticated.clear()
 
-    async def request_access_token(self) -> int:
-        """Request Session authorization"""
+    async def request_access_token(self) -> dict[str, str]:
+        """
+        Request Session authorization Returns Dict of
+        https://api.tradovate.com/#tag/Authentication/operation/oAuthToken
+        """
         await self.__aenter__()
 
         logger.debug("Session event 'request'")
-        auth: dict = {
-            "name": CONFIG['TO'].get("to_name"),
-            "password": CONFIG['TO'].get('to_password'),
-            "appId": CONFIG['TO'].get('to_appid'),
-            "appVersion": "1.0",
-            "cid": CONFIG['TO'].get('to_cid'),
-            "sec": CONFIG['TO'].get('to_sec'),
-            "deviceId": CONFIG['TO'].get('to_devid', 1)
-        }
 
-        res = await self._session.post(urls.http_auth_request, json=auth, ssl=False)
+        res = await self._session.post(urls.http_auth_request, json=to_auth_dict, ssl=False)
 
-        res_dict = await self._update_authorization(res)
+        return await self._update_authorization(res)
 
-        return res_dict
-
-    async def renew_access_token(self, accessToken) -> None:
-        '''Renew Session authorization'''
+    async def renew_access_token(self, accessToken: str) -> dict[str, str]:
+        """
+        Renew Session authorization
+        :param accessToken: Access Token to Log into Trdovate
+        """
         await self.__aenter__()
 
         self.headers: dict = {
@@ -108,21 +106,22 @@ class Session:
         }
         logger.debug("Session event 'renew'")
         res = await self._session.post(urls.http_auth_renew)
-        res_dict = await self._update_authorization(res)
-
-        return res_dict
+        return await self._update_authorization(res)
 
     # -Instance Methods: Private
     async def _update_authorization(
             self, res: ClientResponse
     ) -> dict[str, str]:
-        """Updates Session authorization fields"""
+        """
+        Updates Session authorization fields
+        https://api.tradovate.com/#tag/Authentication/operation/oAuthToken
+        """
         res_dict = await res.json()
 
         # print(">>>>>>>>>>>+++++", res_dict)
 
         # -Invalid Credentials
-        if 'errorText' in res_dict:
+        if 'errorText' in res_dict and len(res_dict['errorText']) > 0:
             self.authenticated.clear()
             raise LoginInvalidException(res_dict['errorText'])
         # -Captcha Limiting
@@ -142,36 +141,25 @@ class Session:
 
         return res_dict
 
-    def try_parsing_date(self, text):
-        for fmt in ('%Y-%m-%dT%H:%M:%SZ', '%Y-%m-%dT%H:%M:%S.%f%z', '%Y-%m-%dT%H:%M:%S%z'):
-            try:
-                return datetime.strptime(text, fmt)
-            except ValueError:
-                pass
-        raise ValueError('no valid date format found')
-
     def _get_age_secs(self, tokens):
         if not tokens:
             return -1
         expiration_time = tokens["expirationTime"]
         dt = int(datetime.now(tz=pytz.UTC).strftime("%s"))
-        t = self.try_parsing_date(expiration_time)
+        t = parse_a_date(expiration_time)
         dt2 = int(t.strftime("%s"))
         age_secs = dt2 - dt
         print("******************************************************age_secs:", age_secs)
         return age_secs
 
-    async def get(self, url: str):
+    async def get(self, url: str) -> dict:
         """Send GET request to a spicified url."""
         await self.__aenter__()
         url = f"{self.URL + url}"
 
         async with self._session.get(url, headers=self.headers, ssl=False) as resp:
             data = await resp.read()
-            if not data:
-                return {}
-
-            return json.loads(data)
+            return json.loads(data) if data else {}
 
     async def post(self, url: str, payload: dict):
         """Send POST request to a specified url with a specified payload."""
@@ -180,9 +168,7 @@ class Session:
         print("url:", url)
         async with self._session.post(url, headers=self.headers, json=payload) as resp:
             data = await resp.read()
-            if not data:
-                return {}
-            return json.loads(data)
+            return json.loads(data) if data else {}
 
     # -Property
     @property
