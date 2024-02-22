@@ -4,7 +4,8 @@ import pytz
 import requests
 
 from . import auth
-from src.tradovate.config import redis_client
+from src.config import redis_client
+
 
 class TOSession(requests.Session):
     def __init__(self, user_id=1):
@@ -34,24 +35,24 @@ class TOSession(requests.Session):
                 "md_access_token": token['mdAccessToken'],
                 "expiration_time": token['expirationTime'],
             }
-            redis_client.set('TO_TOKEN_' + str(user_id), json.dumps(access_token))
+            redis_client.set(f'TO_TOKEN_{str(user_id)}', json.dumps(access_token))
 
             self._set_access_token(access_token)
 
     def _is_token_invalid(self, user_id):
         self._get_access_token(user_id)
 
-        if (self._accessToken == None or
-                not self._accessToken["token"]
+        return bool(
+            (
+                self._accessToken is None
+                or not self._accessToken["token"]
                 or self._access_token_expired()
-        ):
-            return True
-        else:
-            return False
+            )
+        )
 
     def _get_access_token(self, user_id):
-        token = redis_client.get('TO_TOKEN_' + str(user_id))
-        if token != None:
+        token = redis_client.get(f'TO_TOKEN_{str(user_id)}')
+        if token is not None:
             self._set_access_token(json.loads(token))
 
     def _set_access_token(self, token):
@@ -66,4 +67,4 @@ class TOSession(requests.Session):
         dt2 = int(datetime.datetime.strptime(expiration_time, '%Y-%m-%dT%H:%M:%S.%f%z').strftime("%s"))
         age_secs = dt2 - dt
         print("******************************************************age_secs:", age_secs)
-        return True if age_secs < 60 else False
+        return (age_secs < 60)

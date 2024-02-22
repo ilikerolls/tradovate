@@ -1,0 +1,11 @@
+# Logging Level
+debug_level: DEBUG
+log_backups: 1
+WEBHOOK:
+  NGROK:
+    enabled: no
+    authtoken: 2UcdkFaGNN4eE1GseMRgQ3HsSNf_4ZCf8ZkYHur9WRSMdgop3
+  port: 9000
+  # Comma delimited list of actions & event handlers. Class Name in these files should be for example print_action file = PrintAction
+  #actions: print_action, tradovate_action
+  handlers: print

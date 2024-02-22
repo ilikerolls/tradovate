@@ -8,7 +8,7 @@ from .accounting import Accounting
 from .auth import Profile
 from .auth.session import Session
 from .stream.utils.typing import CredentialAuthDict
-from src.tradovate.config import logger
+from src.config import logger
 from ..utils.general import Singleton
 
 
@@ -19,7 +19,7 @@ class Client(Profile, metaclass=Singleton):
     # -Constructor
     def __init__(self) -> Client:
         # Profile.__init__() # No need to call Super as we're Overriding self.id & self._session
-        logger.debug("Starting asynchio Event Loop for Connecting to Tradovate...")
+        logger.debug("Starting asyncio Event Loop for Connecting to Tradovate...")
         try:
             self._loop: asyncio.AbstractEventLoop = asyncio.get_running_loop()
         except RuntimeError:

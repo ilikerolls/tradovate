@@ -1,6 +1,6 @@
 ## Imports
 from __future__ import annotations
-import asyncio, redis, logging, json, os, requests, pytz, time
+import asyncio, logging, json, pytz, time
 
 from datetime import datetime, timedelta
 import numpy as np
@@ -13,7 +13,7 @@ from typing import Sequence
 from numbers import Number
 
 import pandas_ta as pd
-from ..config import CONFIG, redis_client
+from src.config import redis_client
 
 ## Constants
 log = logging.getLogger(__name__)

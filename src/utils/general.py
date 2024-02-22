@@ -26,6 +26,11 @@ class Singleton(type):
 
 
 def snake_case(text: str) -> str:
+    """
+    Return a class name in snake case form & removing _. For example: print_action will return PrintAction
+    :param text: String to convert
+    :return: Snake Case Class String ex: TradovateAction
+    """
     return re.sub(r'_', '', text.title())
 
 

@@ -1,11 +1,9 @@
-import os.path
 import time
 import json
 import webhook_listener
 import ngrok
-from src.tradovate.config import logger, CONFIG
-from src.constants import SSL_CRT, SSL_KEY
-from src.webhooks.events.action import ActionManager
+from src.config import logger, CONFIG
+from src.webhooks.handlers.action import ActionManager
 
 
 class WHListener:
@@ -20,8 +18,8 @@ class WHListener:
         self.port = port
         # Register Actions to be taken On Successful Webhook
         self.action_man = ActionManager()
-        for action in CONFIG['WEBHOOK']['actions']:
-            self.action_man.add_action(name=action)
+        for action_name in CONFIG['WEBHOOK']['handlers']:
+            self.action_man.add_action(name=action_name)
         if auto_start:
             self.start()
 
@@ -38,9 +36,12 @@ class WHListener:
             body_json = json.loads(body.decode('utf-8'))
             if len(body_json) > 0:
                 logger.info(f"Webhook Data Successfully Received\n{body_json}")
-                for action in self.action_man.get_all():
-                    action.set_data(data=body_json)
-                    action.run()
+                for [a_name, action] in self.action_man.get_all_dict().items():
+                    try:
+                        action.set_data(data=body_json)
+                        action.run()
+                    except Exception as e:
+                        logger.warning(f"Failed to run action: {a_name}. Error:\n{e}")
         except Exception as e:
             logger.error(f"Error Processing Incoming JSON call:\n{e}")
 

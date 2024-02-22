@@ -1,18 +1,17 @@
 ## Imports
 from __future__ import annotations
 from enum import Enum
-import os
 
-from src.tradovate.config import CONFIG
+from src.config import CONFIG_HANDLERS
 
 ## Constants
 # -Base URLs
 _domains = (
-    "://live.tradovateapi.com/v1/",     # -Live Account Functionality
-    "://demo.tradovateapi.com/v1/",     # -Demo Account Functionality
-    "://md.tradovateapi.com/v1/",       # -Live Market Functionality
-    #"://md-demo.tradovateapi.com/v1/",  # -Demo Market Functionality [?]
-    #"://replay.tradovateapi.com/v1",    # -Replay Market Functionality
+    "://live.tradovateapi.com/v1/",  # -Live Account Functionality
+    "://demo.tradovateapi.com/v1/",  # -Demo Account Functionality
+    "://md.tradovateapi.com/v1/",  # -Live Market Functionality
+    # "://md-demo.tradovateapi.com/v1/",  # -Demo Market Functionality [?]
+    # "://replay.tradovateapi.com/v1",    # -Replay Market Functionality
 )
 http_base_live, http_base_demo, http_base_market = [
     f"https{domain}" for domain in _domains
@@ -22,11 +21,15 @@ wss_base_live, wss_base_demo, wss_base_market = [
 ]
 # -Authorization
 #  -HTTP[Live Only]
-http_base_auth = http_base_live + "auth/" if CONFIG['TO'].get('to_env') == 'LIVE' else http_base_demo + "auth/"
-http_auth_oauth = http_base_auth + "oauthtoken"
-http_auth_request = http_base_auth + "accesstokenrequest"
-http_auth_renew = http_base_auth + "renewaccesstoken"
-http_auth_me = http_base_auth + "me"
+http_base_auth = (
+    f"{http_base_live}auth/"
+    if CONFIG_HANDLERS['tradovate']['TO'].get('to_env').upper() == 'LIVE'
+    else f"{http_base_demo}auth/"
+)
+http_auth_oauth = f"{http_base_auth}oauthtoken"
+http_auth_request = f"{http_base_auth}accesstokenrequest"
+http_auth_renew = f"{http_base_auth}renewaccesstoken"
+http_auth_me = f"{http_base_auth}me"
 #  -Websocket
 wss_auth = "authorize"
 # -User
@@ -53,7 +56,7 @@ def get_account(endpoint: ENDPOINT, id_: int) -> str:
 
 
 def get_accounts(
-    endpoint: ENDPOINT, ids: list[int] | None = None
+        endpoint: ENDPOINT, ids: list[int] | None = None
 ) -> str:
     """URL Endpoint for getting multiple accounts - by id or full list"""
     url = "account/items" if ids else "account/list"

@@ -28,7 +28,7 @@ class Session:
         self.authenticated: asyncio.Event = asyncio.Event()
         self.token_expiration: datetime | None = None
         self._aiosession: aiohttp.ClientSession | None = None
-        self._loop: AbstractEventLoop = loop if loop else asyncio.get_event_loop()
+        self._loop: AbstractEventLoop = loop or asyncio.get_event_loop()
         self._loop.create_task(self.__ainit__(), name="session-init")
 
     # -Dunder Methods
@@ -39,7 +39,7 @@ class Session:
         str_ = f"Session(authenticated={self.authenticated.is_set()}"
         if self.authenticated.is_set():
             str_ += f", duration={self.token_duration}"
-        return str_ + ")"
+        return f"{str_})"
 
     # -Instance Methods: Private
     async def _update_authorization(
@@ -137,7 +137,7 @@ class WebSocket:
         self.authenticated: asyncio.Event = asyncio.Event()
         self._request: int = 0
         self._aiowebsocket: ClientWebSocket = websocket
-        self._loop: AbstractEventLoop = loop if loop else asyncio.get_event_loop()
+        self._loop: AbstractEventLoop = loop or asyncio.get_event_loop()
         self._loop.create_task(self.__ainit__(), name=f"websocket[{self.id}]-init")
 
     # -Dunder Methods
@@ -173,7 +173,7 @@ class WebSocket:
         '''Request WebSocket authorization'''
         await self._socket_send(urls.wss_auth, body=token)
         res = (await self.poll_message())
-        if res == None:
+        if res is None:
             raise WebSocketAuthorizationException(self.url, token)
         ws_res = res[0]
         if not ws_res or ws_res['s'] != 200:
@@ -223,7 +223,7 @@ class WebSocket:
         loop: AbstractEventLoop | None = None
     ) -> WebSocket:
         '''Create WebSocket from Session'''
-        loop = loop if loop else session.loop
+        loop = loop or session.loop
         websocket = await session.create_websocket(url)
         return cls(
             url, websocket, loop=loop

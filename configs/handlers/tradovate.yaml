@@ -1,6 +1,3 @@
-# Logging Level
-debug_level: DEBUG
-log_backups: 1
 TO:
   # DEMO connects to demo server & LIVE makes REAL Trades
   to_env: DEMO
@@ -12,14 +9,7 @@ TO:
   to_sec: secret_key
   # Device ID a string up to 64 characters that uniquely and permanently identify the physical device
   to_devid: 136e4264-e69c-23e6-b566-527813124131
-WEBHOOK:
-  NGROK:
-    enabled: yes
-    authtoken: 2UcdkFaGNN4eE1GseMRgQ3HsSNf_4ZCf8ZkYHur9WRSMdgop3
-  port: 9000
-  # Comma delimited list of actions & event handlers. Class Name in these files should be for example print_action file = PrintAction
-  #actions: print_action, tradovate_action
-  actions: print_action, tradovate_action
+
 REDIS:
   # Setup Redis Host Configuration
   redis_host: 192.168.40.17

@@ -1,23 +1,12 @@
-from redis.exceptions import TimeoutError, AuthenticationError
-
-from src.webhooks.events.action import Action
-from src.tradovate.config import logger
+from src.webhooks.handlers.action import Action
+from src.config import logger
 from src.tradovate.to_bot import TOBot
 
 
 class TradovateAction(Action):
-    def __init__(self):
-        super().__init__()
-        try:
-            self.to = TOBot()
-        except(TimeoutError, AuthenticationError) as e:
-            logger.exception(
-                f"Couldn't connect to Redis! Most likely the Redis Server hasn't been started yet or Credentials are "
-                f"wrong? Error:\n{e}")
-            # raise Exception("Redis Error")
-        except Exception as e:
-            logger.exception(f"Couldn't Connect to Tradovate:\n{e}")
-            # raise Exception("Tradovate Error")
+    def __init__(self, action_name: str):
+        super().__init__(action_name=action_name)
+        self.to = TOBot()
 
     def place_market_order(self, symbol: str, side: str, amount: int, comment: str = None, order_id: str = None):
         """
@@ -30,6 +19,7 @@ class TradovateAction(Action):
         """
         logger.info(
             f"{self.name} - Placing Market Order: Order ID: {order_id}, symbol: {symbol}, side: {side}, amount: {amount}, comment: {comment}")
+
         self.to.orders_api.place_order(action=side, symbol=symbol, order_qty=amount, order_type='Market',
                                        cl_ord_id=order_id, text=comment)
 
@@ -38,7 +28,10 @@ class TradovateAction(Action):
         Custom run method. Add your custom logic here.
         """
         super().run(*args, **kwargs)
-        if self.data['action'].lower() == 'market_order':
-            self.place_market_order(symbol=str(self.data['sym']), side=str(self.data['side']),
-                                    amount=int(self.data['amount']), comment=str(self.data.get('comment', None)),
-                                    order_id=self.data.get('sig_id', None))
+        try:
+            if self.data['o_type'].lower() == 'market':
+                self.place_market_order(symbol=str(self.data['sym']), side=str(self.data['side']),
+                                        amount=int(self.data['amount']), comment=str(self.data.get('comment', None)),
+                                        order_id=self.data.get('sig_id', None))
+        except ValueError as ve:
+            logger.warning(f"Couldn't find either an order type or another required parameter in webhook:\n{ve}")

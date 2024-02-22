@@ -1,7 +1,7 @@
 from __future__ import (absolute_import, division, print_function, unicode_literals)
 import src.tradovate as td
 import asyncio
-from src.tradovate.config import CONFIG
+from src.config import CONFIG
 
 
 async def main() -> None:

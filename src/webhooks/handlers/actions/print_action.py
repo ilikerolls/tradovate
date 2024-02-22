@@ -1,10 +1,10 @@
-from src.webhooks.events.action import Action
-from src.tradovate.config import logger
+from src.webhooks.handlers.action import Action
+from src.config import logger
 
 
 class PrintAction(Action):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, action_name: str):
+        super().__init__(action_name=action_name)
 
     def run(self, *args, **kwargs):
         super().run(*args, **kwargs)  # this is required

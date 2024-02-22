@@ -8,7 +8,7 @@ from ..stream.utils.typing import AccountDict
 if TYPE_CHECKING:
     from . import Profile
 
-from src.tradovate.config import logger
+from src.config import logger
 
 
 ## Classes
