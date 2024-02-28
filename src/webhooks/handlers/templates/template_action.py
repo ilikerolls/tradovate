@@ -4,7 +4,7 @@ from src.webhooks.handlers.action import Action
 Class Name: TemplateActionClass"""
 
 
-class TemplateActionClass(Action):
+class TemplateAction(Action):
     """Template for Creating New Actions"""
     def __init__(self, action_name: str):
         """

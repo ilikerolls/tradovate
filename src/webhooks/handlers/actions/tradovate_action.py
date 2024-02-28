@@ -18,7 +18,7 @@ class TradovateAction(Action):
         :param order_id: Optional: Assign an Order ID to Order
         """
         logger.info(
-            f"{self.name} - Placing Market Order: Order ID: {order_id}, symbol: {symbol}, side: {side}, amount: {amount}, comment: {comment}")
+            f"{self.action_name} - Placing Market Order: Order ID: {order_id}, symbol: {symbol}, side: {side}, amount: {amount}, comment: {comment}")
 
         self.to.orders_api.place_order(action=side, symbol=symbol, order_qty=amount, order_type='Market',
                                        cl_ord_id=order_id, text=comment)

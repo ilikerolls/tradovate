@@ -1,0 +1,8 @@
+# Comma delimited list of accounts to send commands to ex: sim01, account02 or ex: sim01
+ACCOUNTS: DEMO2284144
+# Symbol Translater. For example MNQ1!: MNQ %m-%y would translate to MNQ 02-24
+SYM_TR:
+  MNQ1!: MNQ MAR24
+OIF:
+  IN_DIR: C:\Users\green\Documents\NinjaTrader 8\incoming
+  OUT_DIR: C:\Users\green\Documents\NinjaTrader 8\outgoing
