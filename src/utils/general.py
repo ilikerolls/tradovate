@@ -57,7 +57,7 @@ def snake_case(text: str) -> str:
 
 def string_to_date(dated_str: str) -> str:
     d = date.today()
-    return d.strftime(dated_str).upper()
+    return str(d.strftime(dated_str).upper())
 
 
 if __name__ == "__main__":

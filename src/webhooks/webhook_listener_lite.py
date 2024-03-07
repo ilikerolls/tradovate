@@ -64,7 +64,8 @@ class WHListener:
             self._ngrok_listener = ngrok.forward(f"127.0.0.1:{self.port}",
                                                  authtoken=CONFIG['WEBHOOK']['NGROK']['authtoken'], schemes=["http"],
                                                  proto='http')
-            logger.info(f"Started NGROK on {self._ngrok_listener.url()}")
+            logger.info(f"Started NGROK - Add this address: {self._ngrok_listener.url()} to your TradingView Alert under Webhook URL in the Settings tab")
+        logger.info("Add {{strategy.order.alert_message}} to your TradingView Alert Message")
         self._wh_server.start()
 
     def stop(self):

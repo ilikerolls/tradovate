@@ -62,7 +62,7 @@ class Action:
             self.conf = CONFIG_HANDLERS[self.action_name]
             logger.debug(f"Action: [{self.action_name}] - Loaded Configuration\n{self.conf}")
         except KeyError:
-            logger.debug(f"Action [{self.action_name}] - No Configuration to load.")
+            logger.debug(f"Warning: Action [{self.action_name}] - No Configuration to load.")
 
     def __str__(self):
         return f'{self.class_name}'

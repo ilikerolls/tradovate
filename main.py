@@ -3,11 +3,8 @@ from src.config import CONFIG, logger
 import src.webhooks.webhook_listener_lite as wl
 import time
 
-# from src.tradovate.to_bot import TOBot
-
 
 def main(seconds: int = 0):
-    # to = TOBot()
     if seconds > 0:
         for _ in range(seconds):
             time.sleep(1)

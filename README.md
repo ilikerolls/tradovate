@@ -14,25 +14,8 @@ virtualenv ./virtualenv --python=$(which python3)
 # Install Python requirements
 pip install -r requirements.txt
 
-# Install cointrol-*
-pip install -e .
-
-# Set param enviroment env.env
-TO_ENV=DEMO
-TO_NAME=Your credentials here
-TO_PASSWORD=Your credentials here
-TO_APPID="Sample App"
-TO_CID=0
-TO_SEC=Your API secret here
-
-# OR export in terminal to test local
-export TO_ENV=DEMO
-export TO_NAME=Your credentials here
-export TO_PASSWORD=Your credentials here
-export TO_APPID="Sample App"
-export TO_CID=0
-export TO_SEC=Your API secret here
-
+# Starting with Python 3.12 you may need to run
+pip install --upgrade setuptools
 # run test
 python -m test
 

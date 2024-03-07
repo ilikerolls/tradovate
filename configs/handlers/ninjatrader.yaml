@@ -6,3 +6,5 @@ SYM_TR:
 OIF:
   IN_DIR: C:\Users\green\Documents\NinjaTrader 8\incoming
   OUT_DIR: C:\Users\green\Documents\NinjaTrader 8\outgoing
+# Directory containing NT8 DLL files like NinjaTrader.Client.dll
+DLL_DIR: C:\Program Files\NinjaTrader 8\bin
