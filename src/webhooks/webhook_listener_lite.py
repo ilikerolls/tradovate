@@ -19,9 +19,12 @@ class WHListener:
         # Register Actions to be taken On Successful Webhook
         self.action_man = ActionManager()
         for action_name in CONFIG['WEBHOOK']['handlers']:
-            self.action_man.add_action(name=action_name)
+            self.action_man.add(name=action_name)
         if auto_start:
             self.start()
+
+    def __del__(self):
+        self.stop()
 
     def _process_post_request(self, request, *args, **kwargs):
         """
@@ -36,10 +39,10 @@ class WHListener:
             body_json = json.loads(body.decode('utf-8'))
             if len(body_json) > 0:
                 logger.info(f"Webhook Data Successfully Received\n{body_json}")
-                for [a_name, action] in self.action_man.get_all_dict().items():
+                for [a_name, action_obj] in self.action_man.get_all_dict().items():
                     try:
-                        action.set_data(data=body_json)
-                        action.run()
+                        action_obj.set_data(data=body_json)
+                        action_obj.run()
                     except Exception as e:
                         logger.warning(f"Failed to run action: {a_name}. Error:\n{e}")
         except Exception as e:

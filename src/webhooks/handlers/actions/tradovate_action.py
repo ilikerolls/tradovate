@@ -4,8 +4,8 @@ from src.tradovate.to_bot import TOBot
 
 
 class TradovateAction(Action):
-    def __init__(self, action_name: str):
-        super().__init__(action_name=action_name)
+    def __init__(self, name: str):
+        super().__init__(name=name)
         self.to = TOBot()
 
     def place_market_order(self, symbol: str, side: str, amount: int, comment: str = None, order_id: str = None):

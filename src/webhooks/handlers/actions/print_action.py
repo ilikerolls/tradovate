@@ -3,8 +3,8 @@ from src.config import logger
 
 
 class PrintAction(Action):
-    def __init__(self, action_name: str):
-        super().__init__(action_name=action_name)
+    def __init__(self, name: str):
+        super().__init__(name=name)
 
     def run(self, *args, **kwargs):
         super().run(*args, **kwargs)  # this is required

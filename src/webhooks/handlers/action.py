@@ -1,78 +1,108 @@
 from src.config import logger
-from src.utils.general import snake_case
+from src.utils.general import snake_case, csv_to_list
 from src.config import CONFIG_HANDLERS
 from importlib import import_module
 
 
-class ActionManager:
+class TaskManager:
     def __init__(self):
-        self._actions = {}
+        """
+        :param mod_path: Default Module Path to
+        """
+        self._tasks: dict = {}
+        self.man_name: str = str(type(self).__name__)
 
-    def add_action(self, name: str):
+    def add(self, name: str):
         """
         Registers action with manager
-        :param name: Name of the Action ex: print or tradovate
+        :param name: Name of the Task(Action/Alert) ex: print or ninjatrader
         """
-        class_name = snake_case(f'{name}_action')
-        logger.info(f'Registering action --->\tsrc.webhooks.handlers.actions.{name}_action with class: {class_name}')
+        raise NotImplemented
+
+    def _add(self, mod_path: str, name: str) -> bool:
+        """
+        Import a module & add it to the Manager
+        :param mod_path: ex: 'src.webhooks.handlers.actions.print_action'
+        :param class_name: Name of Class to Import ex: PrintAction
+        :returns True = Successfully added Task to Manager, False = Couldn't add it to the Manager
+        """
+        class_name = snake_case(name)
         try:  # Get & import Action Object/class
-            action = getattr(import_module(f'src.webhooks.handlers.actions.{name}_action', class_name), class_name)(action_name=name)
-            self._actions[name] = action
+            class_obj = getattr(import_module(mod_path, class_name), class_name)(name=name)
+            self._tasks[name] = class_obj
+            logger.info(f'[{self.man_name}] Registering --->\t{mod_path} with class: {class_name}')
+            return True
         except Exception as e:
             logger.exception(
-                f"***WARNING: NOT Loading Action [{name}]! Make sure src.webhooks.handlers.actions.{name}_action.py exits "
+                f"***WARNING: NOT Loading Action [{name}]! Make sure {mod_path} "
                 f"with Class Name: {class_name}. Exception Details:\n{e}")
+        return False
 
     def get_all_dict(self) -> dict:
         """
         Gets all actions from manager
         :return: dict of {'action_name': action_object}
         """
-        return self._actions
+        return self._tasks
 
     def get_all_list(self) -> list:
         """
         :return: Return a list of Action Objects as opposed to a dict of {'action_name': action_object}
         """
-        return list(self._actions.values())
+        return list(self._tasks.values())
 
-    def get(self, action_name: str):
+    def get(self, name: str):
         """
         Gets action from manager that matches given name
-        :param action_name: name of action
-        :return: Action Object or None if it's not loaded in the Action Manager
+        :param name: name of task/action/alert
+        :return: Manager Task Object
         """
         try:
-            return self._actions[action_name]
+            return self._tasks[name]
         except KeyError:
-            logger.error(f"Action: [{action_name}] not loaded in Action Manager: {self._actions.keys()}")
+            logger.error(f"{self.man_name}: [{name}] not loaded in Action Manager: {self._tasks.keys()}")
         return None
+
+
+class ActionManager(TaskManager):
+    def add(self, name: str):
+        """
+        Registers Action with Manager
+        :param name: Name of the Action ex: print or tradovate
+        """
+        self._add(mod_path=f'src.webhooks.handlers.actions.{name}', name=name)
+
+
+class AlertManager(TaskManager):
+    def add(self, name: str):
+        """
+        Registers Action with Manager
+        :param name: Name of the Action ex: print or tradovate
+        """
+        self._add(mod_path=f'src.webhooks.handlers.alerts.{name}', name=name)
 
 
 class Action:
     # action_man = ActionManager()
 
-    def __init__(self, action_name: str):
-        self.class_name = str(type(self).__name__)
-        self.action_name: str = action_name
-        # self.logs = []
+    def __init__(self, name: str):
+        """
+        :param name: Name of Action File without .py suffix ex: print_action, ninjatrader_action
+        """
+        self.action_name = str(type(self).__name__)
+        self.name: str = name
+        self._alerts: dict = {}
         self.data = None
         self.conf: dict or None = None
         try:
-            self.conf = CONFIG_HANDLERS[self.action_name]
-            logger.debug(f"Action: [{self.action_name}] - Loaded Configuration\n{self.conf}")
+            self.conf = CONFIG_HANDLERS[name.lower()]
+            logger.debug(f"[{self.action_name}] - Loaded Configuration\n{self.conf}")
+            if 'ALERTS' in self.conf.keys():
+                self._alerts = self.conf['ALERTS']
         except KeyError:
-            logger.debug(f"Warning: Action [{self.action_name}] - No Configuration to load.")
+            logger.debug(f"Warning: [{self.action_name}] - No Configuration to load.")
 
-    def __str__(self):
-        return f'{self.class_name}'
-
-    # def get_logs(self):
-    #     """
-    #     Gets run logs in descending order
-    #     :return: list
-    #     """
-    #     return self.logs
+    def __str__(self): return self.action_name
 
     def set_data(self, data: dict):
         """Sets data for action"""

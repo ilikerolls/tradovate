@@ -1,4 +1,6 @@
 import contextlib
+import smtplib
+import threading
 from datetime import datetime, date
 from threading import Lock
 import re
@@ -23,6 +25,23 @@ class Singleton(type):
             cls._instances[cls] = super(Singleton,
                                         cls).__call__(*args, **kwargs)
         return cls._instances[cls]
+
+
+def create_a_thread(func, name: str = None, daemon: bool = True, **kwargs) -> threading.Thread:
+    """
+    Create & Start a thread, then return it's handle
+    :param func: Function/method to run in the thread
+    :param name: Optional: Name of Thread
+    :param daemon: Optional: True(Deafault) = Thread is automatically killed when main program Exits, False = Must keep
+    track of thread & stop manually via thread.stop()
+    :param kwargs: Any additional arguments to be passed to threading.Thread()
+    :return: Thread Handle
+    """
+    thread = threading.Thread(
+        target=func, name=name, daemon=daemon, kwargs=kwargs
+    )
+    thread.start()
+    return thread
 
 
 def csv_to_list(string: str, cast_to=str) -> list:
@@ -61,4 +80,7 @@ def string_to_date(dated_str: str) -> str:
 
 
 if __name__ == "__main__":
-    print(f"Snake case name of print_action = {snake_case(text='print_action')}")
+    email_action = SendEmail(login='greenwood.marcis@hotmail.com', passwd='80CrazyCrayon24',
+                             sender_email='greenwood.marcis@hotmail.com')
+    recipients = ['greenwood.marcis@gmail.com', 'coutons@hotmail.com']
+    email_action.send_email(subject='test', body='Test Body', recipients=recipients)

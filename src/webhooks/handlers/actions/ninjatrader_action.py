@@ -2,6 +2,7 @@ from src.webhooks.handlers.action import Action
 from src.config import logger
 from src.utils.general import string_to_date, csv_to_list
 from src.ninja_trader.client import NTClient
+from src.webhooks.handlers.alerts.email_alert import SendEmail
 
 
 class NinjatraderAction(Action):
@@ -9,13 +10,12 @@ class NinjatraderAction(Action):
     Sends Commands to NinjaTrader API such as Market Orders when called by the ActionManager for ex: from a Webhook
     """
 
-    def __init__(self, action_name: str):
-        """
-        :param action_name: Name given to Action by Action Manager
-        """
-        super().__init__(action_name=action_name)
+    def __init__(self, name: str):
+        super().__init__(name=name)
         self.ntc = NTClient()
         self.nt_accounts: list = csv_to_list(self.conf['ACCOUNTS'])
+        self.conn_mon_alert = SendEmail(**self._alerts['EMAIL'])
+        self.ntc.monitor_nt_conn(enable=True, alert=self.conn_mon_alert)
 
     def get_nt_synched_tv(self, symbol: str) -> dict:
         """
