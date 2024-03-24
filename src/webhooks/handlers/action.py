@@ -12,6 +12,8 @@ class TaskManager:
         self._tasks: dict = {}
         self.man_name: str = str(type(self).__name__)
 
+    def __len__(self) -> int: return len(self._tasks)
+
     def add(self, name: str):
         """
         Registers action with manager
@@ -28,8 +30,7 @@ class TaskManager:
         """
         class_name = snake_case(name)
         try:  # Get & import Action Object/class
-            class_obj = getattr(import_module(mod_path, class_name), class_name)(name=name)
-            self._tasks[name] = class_obj
+            self._tasks[name] = getattr(import_module(mod_path, class_name), class_name)(name=name)
             logger.info(f'[{self.man_name}] Registering --->\t{mod_path} with class: {class_name}')
             return True
         except Exception as e:
@@ -83,26 +84,26 @@ class AlertManager(TaskManager):
 
 
 class Action:
-    # action_man = ActionManager()
+    NAME = None
 
     def __init__(self, name: str):
         """
         :param name: Name of Action File without .py suffix ex: print_action, ninjatrader_action
         """
-        self.action_name = str(type(self).__name__)
+        self.NAME = str(type(self).__name__)
         self.name: str = name
         self._alerts: dict = {}
         self.data = None
-        self.conf: dict or None = None
+        self.conf: dict | None = None
         try:
             self.conf = CONFIG_HANDLERS[name.lower()]
-            logger.debug(f"[{self.action_name}] - Loaded Configuration\n{self.conf}")
+            logger.debug(f"[{self.NAME}] - Loaded Configuration")
             if 'ALERTS' in self.conf.keys():
                 self._alerts = self.conf['ALERTS']
         except KeyError:
-            logger.debug(f"Warning: [{self.action_name}] - No Configuration to load.")
+            logger.debug(f"Warning: [{self.NAME}] - No Configuration to load.")
 
-    def __str__(self): return self.action_name
+    def __str__(self): return self.NAME
 
     def set_data(self, data: dict):
         """Sets data for action"""

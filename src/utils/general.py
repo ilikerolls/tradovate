@@ -1,5 +1,4 @@
 import contextlib
-import smtplib
 import threading
 from datetime import datetime, date
 from threading import Lock
@@ -77,10 +76,3 @@ def snake_case(text: str) -> str:
 def string_to_date(dated_str: str) -> str:
     d = date.today()
     return str(d.strftime(dated_str).upper())
-
-
-if __name__ == "__main__":
-    email_action = SendEmail(login='greenwood.marcis@hotmail.com', passwd='80CrazyCrayon24',
-                             sender_email='greenwood.marcis@hotmail.com')
-    recipients = ['greenwood.marcis@gmail.com', 'coutons@hotmail.com']
-    email_action.send_email(subject='test', body='Test Body', recipients=recipients)

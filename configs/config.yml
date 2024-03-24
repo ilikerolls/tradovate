@@ -8,4 +8,4 @@ WEBHOOK:
   port: 9000
   # Comma delimited list of actions & event handlers. Class Name in these files should be for example print_action file = PrintAction
   #actions: print_action, tradovate_action
-  handlers: ninjatrader_action
+  handlers: ninjatrader_action, print_action

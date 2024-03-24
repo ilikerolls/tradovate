@@ -15,7 +15,7 @@ def main(seconds: int = 0):
 
 if __name__ == "__main__":
     # Start Bot
-    logger.debug(f'Configuration:\n{CONFIG}')
+    # logger.debug(f'Configuration:\n{CONFIG}')
     # if CONFIG['TO']['to_env'].upper() == 'LIVE':
     #     logger.warning("**** Running in LIVE Mode **** Press [Enter] to Continue...")
     #     input()

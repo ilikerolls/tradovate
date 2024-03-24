@@ -5,6 +5,7 @@ from src.config import logger
 
 class SendEmail:
     """Send an Email"""
+    NAME = None
 
     def __init__(self, login: str, passwd: str, sender_email: str = None, to: str | list = None,
                  host: str = 'smtp-mail.outlook.com', port: int = 587, ssl: bool = False, tls: bool = True):
@@ -18,6 +19,7 @@ class SendEmail:
         :param ssl: True = Use SSL, False = Do NOT Use SSL
         :param tls: True = Use TLS, False = Do Not Use TLS
         """
+        self.NAME = str(type(self).__name__)
         self.host = host
         self.port = port
         self.login = login
@@ -27,11 +29,11 @@ class SendEmail:
         self.use_ssl = ssl
         self.use_tls = tls
 
-    def run(self, subject: str, body: str, recipients: list | str = None):
+    def run(self, subject: str, msg: str, recipients: list | str = None):
         try:
-            self.send_email(subject=subject, body=body, recipients=recipients)
+            self.send_email(subject=subject, body=msg, recipients=recipients)
         except Exception as e:
-            logger.exception(f"[{str(type(self).__name__)}] - Failed to run Alert. Error:\n{e}")
+            logger.exception(f"[] - Failed to run Alert. Error:\n{e}")
 
     def send_email(self, subject: str, body: str, recipients: list | str = None) -> str:
         """
@@ -41,10 +43,9 @@ class SendEmail:
         :param recipients: Optional: List or comma delimited string of Email Addresses to send to ex: ['joe.blow@gmail.com', 'camelToe@hotmail.com']
         :returns Email Messsage sent in String format
         """
+        to_list = self.recipients
         if recipients is not None:
             to_list = ','.join(recipients) if isinstance(recipients, list) else recipients
-        else:
-            to_list = self.recipients
         msg = "\r\n".join([
             f"From: {self.sender_email}",
             f"To: {to_list}",
@@ -60,7 +61,7 @@ class SendEmail:
                 self._send_email(smtp_server, to_list, msg)
         return msg
 
-    def _send_email(self, smtp_server: smtplib.SMTP, recipients: list, msg: str):
+    def _send_email(self, smtp_server: smtplib.SMTP, recipients: list | str, msg: str):
         smtp_server.ehlo()
         if self.use_tls:
             smtp_server.starttls()

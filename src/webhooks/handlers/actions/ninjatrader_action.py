@@ -12,10 +12,8 @@ class NinjatraderAction(Action):
 
     def __init__(self, name: str):
         super().__init__(name=name)
-        self.ntc = NTClient()
+        self.ntc = NTClient(mon_con=True, alerts=[SendEmail(**self._alerts['EMAIL'])])
         self.nt_accounts: list = csv_to_list(self.conf['ACCOUNTS'])
-        self.conn_mon_alert = SendEmail(**self._alerts['EMAIL'])
-        self.ntc.monitor_nt_conn(enable=True, alert=self.conn_mon_alert)
 
     def get_nt_synched_tv(self, symbol: str) -> dict:
         """
