@@ -1,6 +1,6 @@
 from src.config import logger
-from src.utils.general import snake_case, csv_to_list
-from src.config import CONFIG_HANDLERS
+from src.utils.general import snake_case
+from src.config import CONFIG_ACTIONS
 from importlib import import_module
 
 
@@ -10,7 +10,7 @@ class TaskManager:
         :param mod_path: Default Module Path to
         """
         self._tasks: dict = {}
-        self.man_name: str = str(type(self).__name__)
+        self.man_name: str = self.__class__.__name__
 
     def __len__(self) -> int: return len(self._tasks)
 
@@ -90,13 +90,13 @@ class Action:
         """
         :param name: Name of Action File without .py suffix ex: print_action, ninjatrader_action
         """
-        self.NAME = str(type(self).__name__)
+        self.NAME = self.__class__.__name__
         self.name: str = name
         self._alerts: dict = {}
         self.data = None
         self.conf: dict | None = None
         try:
-            self.conf = CONFIG_HANDLERS[name.lower()]
+            self.conf = CONFIG_ACTIONS[name.lower()]
             logger.debug(f"[{self.NAME}] - Loaded Configuration")
             if 'ALERTS' in self.conf.keys():
                 self._alerts = self.conf['ALERTS']

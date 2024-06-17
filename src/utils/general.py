@@ -48,8 +48,9 @@ def csv_to_list(string: str, cast_to=str) -> list:
     Convert Comma Separated list into a List
     :param string: Comma Separated String to be converted into a list
     :param cast_to: What should each item in list be Cast to? Ex: 'str', 'int', 'float'
+    :return: A list from csv string or an empty list if string is empty
     """
-    return list(map(cast_to, string.replace(' ', '').split(',')))
+    return list(map(cast_to, string.replace(' ', '').split(','))) if string != "" else []
 
 
 def parse_a_date(text: str) -> datetime:

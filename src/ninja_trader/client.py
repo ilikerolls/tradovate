@@ -4,11 +4,12 @@ import time
 import logging
 
 import clr
-from src.config import CONFIG_HANDLERS, logger
+from src.config import CONFIG_ACTIONS, logger
 from src.utils.general import csv_to_list, create_a_thread
 
 # Add NT8 ATI Client DLL Library Reference
-clr.AddReference(os.path.join(CONFIG_HANDLERS['ninjatrader_action']['DLL_DIR'], 'NinjaTrader.Client.DLL'))
+clr.AddReference(os.path.join(CONFIG_ACTIONS['ninjatrader_action']['DLL_DIR'], 'NinjaTrader.Client.DLL'))
+# Client class is loaded at Runtime and Expected to be an "Unresolved reference"
 from NinjaTrader.Client import Client
 
 
@@ -18,26 +19,34 @@ class NTClient(Client):
     API Parameters:
     https://ninjatrader.com/support/helpGuides/nt8/NT%20HelpGuide%20English.html?commands_and_valid_parameters.htm
     """
-    CONF = CONFIG_HANDLERS['ninjatrader_action']
+    CONF = CONFIG_ACTIONS['ninjatrader_action']
     NAME = None
 
-    def __init__(self, mon_con: bool = False, alerts: list = None):
+    def __init__(self, host: str = '127.0.0.1', port: int = 36973, mon_con: bool = False, alerts: list = None,
+                 alert_orders: bool = False):
         """
+        :param host: [Optional]: NinjaTrader Host to connect to. Default: localhost
+        :param port: [Optional]: NT Port to connect to. Default:
         :param mon_con: True = Monitor NinjaTrader Connection, False = Do NOT Monitor NT connection
         :param alerts: [Optional] List of Alert Objects to use
+        :param alert_orders: [Optional] Send an Alert on Successfully placed orders as well as Failed Orders
         """
         super().__init__()
+        self.accounts: list = csv_to_list(self.CONF['ACCOUNTS'])
         self.NAME = self.__class__.__name__
+        self.host = host
+        self.port = port
         self._nt_mon_thread = None
         self._nt_mon_kill_thread = threading.Event()
         self._alerts: list = alerts
+        self.alert_orders: bool = alert_orders
+        self.SetUp(host=self.host, port=self.port)
         if self.is_connected(True) is False:
             logger.warning("Couldn't connect to ATI Interface. Make sure NT8 is open and that 'Tools -> Options -> "
                            "Automated Trading Interface -> General -> AT Interface' to make sure that checkbox is "
                            "checked.")
         else:
             logger.info("Successfully Connected to NinjaTrader Client.")
-        self.accounts: list = csv_to_list(self.CONF['ACCOUNTS'])
         if mon_con:
             self.monitor_nt_conn()
 
@@ -52,6 +61,8 @@ class NTClient(Client):
         if self._alerts is not None:
             for alert in self._alerts:
                 alert.run(subject=subject, msg=msg)
+        else:
+            logger.warning(f"[{self.NAME}]: NinjaTrader: NO Alerts created for this action")
         logger.log(level=log_level, msg=f"[{subject}]: {msg}")
 
     def __del__(self):
@@ -99,7 +110,7 @@ class NTClient(Client):
             self._nt_mon_thread.join()
             self._nt_mon_thread = None
 
-    def _nt_monitor(self, check_secs: int = 30, retry_count: int = 2):
+    def _nt_monitor(self, check_secs: int = 120, retry_count: int = 2):
         """
         Check Heartbeat of NinjaTrader to make sure we didn't lose connection!
         :param check_secs: Check to see if we're connected every this many seconds.
@@ -136,10 +147,14 @@ class NTClient(Client):
         ret_val = self.Command(command='PLACE', account=account, instrument=symbol, action=side.upper(),
                                quantity=amount, orderType='MARKET', limitPrice=0.0, stopPrice=0.0,
                                timeInForce='GTC', oco='', orderId=order_id, tpl='', strategy='')
-        if ret_val == 0:
-            logger.info(
-                f'[{account}] - [MARKET ORDER] Order ID: {order_id} Symbol: {symbol}, Side: {side.upper()}, Quantity: {amount}, comment: [{comment}]')
-        else:
+        if ret_val == 0:  # Successfully placed the Order!
+            o_msg = f'[{account}] - MARKET ORDER]/SUCCESS Order ID: {order_id} Symbol: {symbol}, Side: {side.upper()}, Quantity: {amount}, comment: [{comment}]'
+            if self.alert_orders:
+                self.alert(msg=o_msg, subject=f"MARKET ORDER: {symbol}", log_level=logging.INFO)
+            else:
+                logger.info(o_msg)
+
+        else:  # Unsuccessful in placing the Order!
             self.alert(
                 msg=f'ERROR: Code: {ret_val}, [{account}] - [MARKET ORDER] Order ID: {order_id} Symbol: {symbol}, Side: {side.upper()}, Quantity: {amount}, comment: [{comment}]',
                 subject=self.NAME)
@@ -149,7 +164,7 @@ class NTClient(Client):
 if __name__ == "__main__":
     nt_client = NTClient(mon_con=True)
     # print(f"NinjaTrader Methods: {dir(Client())}")
-    for _ in range(180):
+    for _ in range(30):
         time.sleep(1)
 
     nt_client.monitor_nt_conn(enable=False)

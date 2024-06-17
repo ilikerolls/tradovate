@@ -13,7 +13,7 @@ from ..stream.utils import urls, timestamp_to_datetime
 from ..stream.utils.errors import (
     LoginInvalidException, LoginCaptchaException
 )
-from src.config import CONFIG, CONFIG_HANDLERS, redis_client, logger, to_auth_dict
+from src.config import CONFIG_ACTIONS, redis_client, logger, to_auth_dict
 from ...utils.general import parse_a_date
 
 
@@ -28,7 +28,7 @@ class Session:
         self._loop: AbstractEventLoop = loop or asyncio.get_event_loop()
         self._loop.create_task(self.__ainit__(), name="session-client")
 
-        self.URL: str = urls.http_base_live if CONFIG_HANDLERS['tradovate']['TO'].get('to_env').upper() == 'LIVE' else urls.http_base_demo
+        self.URL: str = urls.http_base_live if CONFIG_ACTIONS['tradovate']['TO'].get('to_env').upper() == 'LIVE' else urls.http_base_demo
         tokens = redis_client.get('TO_TOKEN')
         if tokens is not None:
             tokens = json.loads(tokens)
@@ -134,7 +134,7 @@ class Session:
         logger.debug("Session event 'authorized'")
         self.authenticated.set()
 
-        redis_client.set('TO_TOKEN', json.dumps(res_dict))
+        await redis_client.set('TO_TOKEN', json.dumps(res_dict))
 
         self.token_expiration = timestamp_to_datetime(res_dict['expirationTime'])
 

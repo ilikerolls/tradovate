@@ -2,7 +2,7 @@
 ACCOUNTS: DEMO2284144
 # Symbol Translater. For example MNQ1!: MNQ %m-%y would translate to MNQ 02-24
 SYM_TR:
-  MNQ1!: MNQ JUN24
+  MNQ1!: MNQ SEP24
 OIF:
   IN_DIR: C:\Users\green\Documents\NinjaTrader 8\incoming
   OUT_DIR: C:\Users\green\Documents\NinjaTrader 8\outgoing
@@ -13,4 +13,4 @@ ALERTS:
     login: greenwood.marcis@hotmail.com
     passwd: 80CrazyCrayon24
     sender_email: greenwood.marcis@hotmail.com
-    to: greenwood.marcis@gmail.com
+    recipients: greenwood.marcis@gmail.com

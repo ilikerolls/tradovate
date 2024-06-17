@@ -5,7 +5,8 @@ from pathlib import Path
 ROOT_DIR: str = str(Path(__file__).parent.parent)
 CONFIG_DIR = os.path.join(ROOT_DIR, "configs")
 CONFIG_FILE = os.path.join(CONFIG_DIR, "config.yml")
-CONFIG_HANDLER_DIR = os.path.join(CONFIG_DIR, "handlers")
+CONFIG_ACTIONS_DIR = os.path.join(CONFIG_DIR, "handlers", "actions")
+CONFIG_ALERTS_DIR = os.path.join(CONFIG_DIR, "handlers", "alerts")
 # Log Files
 LOGGER_NAME = 'TO_BOT'
 LOG_DIR = os.path.join(ROOT_DIR, "logs")

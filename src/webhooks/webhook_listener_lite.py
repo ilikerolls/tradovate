@@ -1,5 +1,6 @@
 import time
 import json
+
 import webhook_listener
 import ngrok
 from src.config import logger, CONFIG
@@ -18,7 +19,7 @@ class WHListener:
         self.port = port
         # Register Actions to be taken On Successful Webhook
         self.action_man = ActionManager()
-        for action_name in CONFIG['WEBHOOK']['handlers']:
+        for action_name in CONFIG['ACTIONS']:
             self.action_man.add(name=action_name)
         if auto_start:
             self.start()
@@ -34,19 +35,23 @@ class WHListener:
         :param kwargs: If any extra keyword arguments are passed?
         :return:
         """
-        try:
-            body = request.body.read(int(request.headers['Content-Length']))
-            body_json = json.loads(body.decode('utf-8'))
-            if len(body_json) > 0:
-                logger.info(f"Webhook Data Successfully Received\n{body_json}")
-                for [a_name, action_obj] in self.action_man.get_all_dict().items():
-                    try:
-                        action_obj.set_data(data=body_json)
-                        action_obj.run()
-                    except Exception as e:
-                        logger.warning(f"Failed to run action: {a_name}. Error:\n{e}")
-        except Exception as e:
-            logger.error(f"Error Processing Incoming JSON call:\n{e}")
+        req_body = request.body.read(int(request.headers['Content-Length']))
+        if request.headers['Content-Type'].lower() == 'application/json':
+            try:
+                body_json = json.loads(req_body)
+                if len(body_json) > 0:
+                    logger.info(f"Webhook Data Successfully Received\n{body_json}")
+                    for [a_name, action_obj] in self.action_man.get_all_dict().items():
+                        try:
+                            action_obj.set_data(data=body_json)
+                            action_obj.run()
+                        except Exception as e:
+                            logger.warning(f"Failed to run action: {a_name}. Error:\n{e}")
+            except Exception as je:
+                logger.error(
+                    f"Failed to decode JSON Message!\n{je}\nHeaders: {request.headers}\nBody: {req_body.decode('utf-8')}")
+        else:
+            logger.warning(f"None JSON request sent. NOT Processing!\nHeaders: {request.headers}\nBody: {req_body.decode('utf-8')}")
 
     def start(self):
         """

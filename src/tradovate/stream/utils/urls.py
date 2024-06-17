@@ -2,7 +2,7 @@
 from __future__ import annotations
 from enum import Enum
 
-from src.config import CONFIG_HANDLERS
+from src.config import CONFIG_ACTIONS
 
 ## Constants
 # -Base URLs
@@ -23,7 +23,7 @@ wss_base_live, wss_base_demo, wss_base_market = [
 #  -HTTP[Live Only]
 http_base_auth = (
     f"{http_base_live}auth/"
-    if CONFIG_HANDLERS['tradovate']['TO'].get('to_env').upper() == 'LIVE'
+    if CONFIG_ACTIONS['tradovate']['TO'].get('to_env').upper() == 'LIVE'
     else f"{http_base_demo}auth/"
 )
 http_auth_oauth = f"{http_base_auth}oauthtoken"

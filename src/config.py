@@ -4,11 +4,11 @@ import redis
 import yaml
 import logging
 from logging.handlers import RotatingFileHandler
-from src.constants import CONFIG_FILE, CONFIG_HANDLER_DIR, LOG_DIR, LOG_FILE, LOG_FILE_ERR, LOGGER_NAME
+from src.constants import CONFIG_FILE, CONFIG_ACTIONS_DIR, CONFIG_ALERTS_DIR, LOG_DIR, LOG_FILE, LOG_FILE_ERR, LOGGER_NAME
 from src.utils.general import csv_to_list
 
 CONFIG: dict = {}
-# CONFIG_HANDLERS: dict = {}
+# : dict = {}
 # Travovate Authentication dictionary
 to_auth_dict: dict = {}
 # Redis Client Currently only used by Tradovate
@@ -25,7 +25,8 @@ def load_config(temp_conf: dict = None) -> dict:
     if not temp_conf:
         with open(CONFIG_FILE, 'r') as yml_file:
             temp_conf = yaml.load(yml_file, Loader=yaml.Loader)
-            temp_conf['WEBHOOK']['handlers'] = csv_to_list(temp_conf['WEBHOOK']['handlers'])
+            temp_conf['ACTIONS'] = csv_to_list(temp_conf['ACTIONS'])
+            temp_conf['ALERTS'] = csv_to_list(temp_conf.get('ALERTS', ''))
             temp_conf['WEBHOOK']['port'] = temp_conf['WEBHOOK'].get('port', 80)
     return temp_conf
 
@@ -67,36 +68,39 @@ def load_logger(temp_conf: dict):
     return logger
 
 
-def load_handlers_conf(temp_conf: dict):
+def load_handlers_conf(conf: dict, handler_name: str):
     """
     Load Action and Event Handlers Configuration
-    :param temp_conf: Main Configuration dictionary
+    :param conf: Main Configuration dictionary
+    :param handler_name: 'ACTIONS' or 'ALERTS'
     :return Dictionary of Handlers Configuration
     """
     temp_hl_dict = {}
-    for handler in temp_conf['WEBHOOK']['handlers']:
-        handler_file = os.path.join(CONFIG_HANDLER_DIR, f"{handler}.yaml")
+    handler_dir = CONFIG_ACTIONS_DIR if handler_name.upper() == 'ACTIONS' else CONFIG_ALERTS_DIR
+    for handler in conf[handler_name.upper()]:
+        handler_file = os.path.join(handler_dir, f"{handler}.yaml")
         if os.path.exists(handler_file):
-            logger.info(f"[{handler}] - Loading handler configuration.")
+            logger.info(f"[{handler_name.upper()}/{handler}] - Loading configuration.")
             with open(handler_file, 'r') as yml_file:
                 temp_hl_conf = yaml.load(yml_file, Loader=yaml.Loader)
                 temp_hl_dict[handler] = temp_hl_conf
         else:
-            logger.warning(f"[{handler}] - No configuration file found at [{handler_file}], so no configuration will "
-                           f"be loaded for this Action/Event. If there is no configuration required for the "
-                           f"action/event for example a print action, then this OK")
+            logger.warning(f"[{handler_name.upper()}/{handler}] - No configuration file found at [{handler_file}], "
+                           f"so no configuration will be loaded for this {handler_name}. If there is no configuration "
+                           f"required for this handler for example a print_action, then this OK to ignore this.")
     return temp_hl_dict
 
 
 # Load config on import if we need to
 CONFIG = load_config(CONFIG)
-CONFIG_HANDLERS = load_handlers_conf(CONFIG)
 # Load our logging settings
 load_logger(CONFIG)
+CONFIG_ACTIONS = load_handlers_conf(conf=CONFIG, handler_name='ACTIONS')
+CONFIG_ALERTS = load_handlers_conf(conf=CONFIG, handler_name='ALERTS')
 
-if 'tradovate' in CONFIG_HANDLERS.keys():
+if 'tradovate' in CONFIG_ACTIONS.keys():
     logger.debug("Loading Tradovate Authentication and Redis Settings")
-    to_conf = CONFIG_HANDLERS['tradovate']
+    to_conf = ['tradovate']
     to_auth_dict = {
         "password": to_conf['TO'].get('to_password'),
         "appId": to_conf['TO'].get('to_appid'),

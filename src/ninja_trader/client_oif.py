@@ -1,7 +1,7 @@
 import os
 import re
 
-from src.config import logger, CONFIG_HANDLERS
+from src.config import logger, CONFIG_ACTIONS
 from src.utils.general import csv_to_list, string_to_date
 
 
@@ -10,11 +10,11 @@ class NTClientOIF:
     Ninja Trader's OIF(Order Instruction Files) API Interface
     https://ninjatrader.com/support/helpGuides/nt8/NT%20HelpGuide%20English.html?order_instruction_files_oif.htm
     """
-    NT_CONF = CONFIG_HANDLERS['ninjatrader']
+    CONF = CONFIG_ACTIONS['ninjatrader']
 
     def __init__(self):
         self.oif_count: int = 0
-        self.accounts: list = csv_to_list(self.NT_CONF['ACCOUNTS'])
+        self.accounts: list = csv_to_list(self.CONF['ACCOUNTS'])
 
     def place_market_order(self, symbol: str, side: str, amount: int, comment: str = None, order_id: str = None):
         """
@@ -29,7 +29,7 @@ class NTClientOIF:
         # market_cmd = 'PLACE;<ACCOUNT>;<INSTRUMENT>;<ACTION>;<QTY>;<ORDER TYPE>;[LIMIT PRICE];[STOP PRICE];<TIF>;[OCO ID];[ORDER ID];[STRATEGY];[STRATEGY ID]'
         market_cmd = f'PLACE;<ACCOUNT>;{symbol};{side.upper()};{amount};MARKET;;;GTC;;{order_id};;'
         # Full path to file to write Market Order Commands to
-        out_file = os.path.join(self.NT_CONF['OIF']['IN_DIR'], f'oif_{self.oif_count}.txt')
+        out_file = os.path.join(self.CONF['OIF']['IN_DIR'], f'oif_{self.oif_count}.txt')
         # Add Command to file for each account
         with open(out_file, "w") as f_out:
             for account in self.accounts:
