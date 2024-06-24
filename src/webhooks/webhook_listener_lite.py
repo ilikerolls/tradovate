@@ -36,7 +36,7 @@ class WHListener:
         :return:
         """
         req_body = request.body.read(int(request.headers['Content-Length']))
-        if request.headers['Content-Type'].lower() == 'application/json':
+        if 'application/json' in request.headers['Content-Type'].lower():
             try:
                 body_json = json.loads(req_body)
                 if len(body_json) > 0:
